@@ -19,16 +19,15 @@
 
 class Estimator
 {
-  public:
+public:
     Estimator();
 
     void setParameter();
 
     // interface
     void processIMU(double t, const Vector3d &linear_acceleration, const Vector3d &angular_velocity);
-    
+
     void processImage(const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image, double header);
-    void setReloFrame(double _frame_stamp, int _frame_index, vector<Vector3d> &_match_points, Vector3d _relo_t, Matrix3d _relo_r);
 
     // internal
     void clearState();
@@ -39,7 +38,6 @@ class Estimator
     void solveOdometry();
     void slideWindowNew();
     void slideWindowOld();
-    void optimization();
     void backendOptimization();
 
     void problemSolve();
@@ -49,7 +47,6 @@ class Estimator
     void vector2double();
     void double2vector();
     bool failureDetection();
-
 
     enum SolverFlag
     {
@@ -62,16 +59,16 @@ class Estimator
         MARGIN_OLD = 0,
         MARGIN_SECOND_NEW = 1
     };
-//////////////// OUR SOLVER ///////////////////
+    //////////////// OUR SOLVER ///////////////////
     MatXX Hprior_;
     VecX bprior_;
     VecX errprior_;
     MatXX Jprior_inv_;
 
     Eigen::Matrix2d project_sqrt_info_;
-//////////////// OUR SOLVER //////////////////
+    //////////////// OUR SOLVER //////////////////
     SolverFlag solver_flag;
-    MarginalizationFlag  marginalization_flag;
+    MarginalizationFlag marginalization_flag;
     Vector3d g;
     MatrixXd Ap[2], backup_A;
     VectorXd bp[2], backup_b;
@@ -113,7 +110,6 @@ class Estimator
     vector<Vector3d> key_poses;
     double initial_timestamp;
 
-
     double para_Pose[WINDOW_SIZE + 1][SIZE_POSE];
     double para_SpeedBias[WINDOW_SIZE + 1][SIZE_SPEEDBIAS];
     double para_Feature[NUM_OF_F][SIZE_FEATURE];
@@ -124,7 +120,6 @@ class Estimator
 
     int loop_window_index;
 
-    // MarginalizationInfo *last_marginalization_info;
     vector<double *> last_marginalization_parameter_blocks;
 
     map<double, ImageFrame> all_image_frame;

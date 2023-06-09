@@ -4,6 +4,7 @@ project(vins_estimator)
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -18,7 +19,8 @@ message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
-  ${EIGEN3_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
   ${Pangolin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}

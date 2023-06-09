@@ -12,3 +12,6 @@
 
 .vscode/
 build/
+bin/
+
+pose_output.txt

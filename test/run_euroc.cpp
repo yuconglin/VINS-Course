@@ -7,9 +7,8 @@
 #include <thread>
 #include <iomanip>
 
-#include <cv.h>
 #include <opencv2/opencv.hpp>
-#include <highgui.h>
+#include <opencv2/highgui.hpp>
 #include <eigen3/Eigen/Dense>
 #include "System.h"
 
@@ -45,7 +44,7 @@ void PubImuData()
 		ssImuData >> dStampNSec >> vGyr.x() >> vGyr.y() >> vGyr.z() >> vAcc.x() >> vAcc.y() >> vAcc.z();
 		// cout << "Imu t: " << fixed << dStampNSec << " gyr: " << vGyr.transpose() << " acc: " << vAcc.transpose() << endl;
 		pSystem->PubImuData(dStampNSec / 1e9, vGyr, vAcc);
-		usleep(5000*nDelayTimes);
+		usleep(5000 * nDelayTimes);
 	}
 	fsImu.close();
 }
@@ -67,8 +66,8 @@ void PubImageData()
 	std::string sImage_line;
 	double dStampNSec;
 	string sImgFileName;
-	
-	// cv::namedWindow("SOURCE IMAGE", CV_WINDOW_AUTOSIZE);
+
+	// cv::namedWindow("SOURCE IMAGE", WINDOW_AUTOSIZE);
 	while (std::getline(fsImage, sImage_line) && !sImage_line.empty())
 	{
 		std::istringstream ssImuData(sImage_line);
@@ -85,14 +84,15 @@ void PubImageData()
 		pSystem->PubImageData(dStampNSec / 1e9, img);
 		// cv::imshow("SOURCE IMAGE", img);
 		// cv::waitKey(0);
-		usleep(50000*nDelayTimes);
+		usleep(50000 * nDelayTimes);
 	}
 	fsImage.close();
 }
 
 #ifdef __APPLE__
 // support for MacOS
-void DrawIMGandGLinMainThrd(){
+void DrawIMGandGLinMainThrd()
+{
 	string sImage_file = sConfig_path + "MH_05_cam0.txt";
 
 	cout << "1 PubImageData start sImage_file: " << sImage_file << endl;
@@ -125,49 +125,48 @@ void DrawIMGandGLinMainThrd(){
 		}
 		//pSystem->PubImageData(dStampNSec / 1e9, img);
 		cv::Mat show_img;
-		cv::cvtColor(img, show_img, CV_GRAY2RGB);
+		cv::cvtColor(img, show_img, cv::COLOR_GRAY2RGB);
 		if (SHOW_TRACK)
 		{
 			for (unsigned int j = 0; j < pSystem->trackerData[0].cur_pts.size(); j++)
 			{
-				double len = min(1.0, 1.0 *  pSystem->trackerData[0].track_cnt[j] / WINDOW_SIZE);
-				cv::circle(show_img,  pSystem->trackerData[0].cur_pts[j], 2, cv::Scalar(255 * (1 - len), 0, 255 * len), 2);
+				double len = min(1.0, 1.0 * pSystem->trackerData[0].track_cnt[j] / WINDOW_SIZE);
+				cv::circle(show_img, pSystem->trackerData[0].cur_pts[j], 2, cv::Scalar(255 * (1 - len), 0, 255 * len), 2);
 			}
 
-			cv::namedWindow("IMAGE", CV_WINDOW_AUTOSIZE);
+			cv::namedWindow("IMAGE", WINDOW_AUTOSIZE);
 			cv::imshow("IMAGE", show_img);
-		  // cv::waitKey(1);
+			// cv::waitKey(1);
 		}
 
 		pSystem->DrawGLFrame();
-		usleep(50000*nDelayTimes);
+		usleep(50000 * nDelayTimes);
 	}
 	fsImage.close();
-
-} 
+}
 #endif
 
 int main(int argc, char **argv)
 {
-	if(argc != 3)
+	if (argc != 3)
 	{
-		cerr << "./run_euroc PATH_TO_FOLDER/MH-05/mav0 PATH_TO_CONFIG/config \n" 
-			<< "For example: ./run_euroc /home/stevencui/dataset/EuRoC/MH-05/mav0/ ../config/"<< endl;
+		cerr << "./run_euroc PATH_TO_FOLDER/MH-05/mav0 PATH_TO_CONFIG/config \n"
+				 << "For example: ./run_euroc /home/stevencui/dataset/EuRoC/MH-05/mav0/ ../config/" << endl;
 		return -1;
 	}
 	sData_path = argv[1];
 	sConfig_path = argv[2];
 
 	pSystem.reset(new System(sConfig_path));
-	
+
 	std::thread thd_BackEnd(&System::ProcessBackEnd, pSystem);
-		
+
 	// sleep(5);
 	std::thread thd_PubImuData(PubImuData);
 
 	std::thread thd_PubImageData(PubImageData);
 
-#ifdef __linux__	
+#ifdef __linux__
 	std::thread thd_Draw(&System::Draw, pSystem);
 #elif __APPLE__
 	DrawIMGandGLinMainThrd();
@@ -176,8 +175,8 @@ int main(int argc, char **argv)
 	thd_PubImuData.join();
 	thd_PubImageData.join();
 
-	// thd_BackEnd.join();
-#ifdef __linux__	
+	thd_BackEnd.join();
+#ifdef __linux__
 	thd_Draw.join();
 #endif
 

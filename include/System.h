@@ -9,27 +9,25 @@
 #include <fstream>
 #include <condition_variable>
 
-// #include <cv.h>
-// #include <opencv2/opencv.hpp>
 #include <pangolin/pangolin.h>
 
 #include "estimator.h"
 #include "parameters.h"
 #include "feature_tracker.h"
 
-
 //imu for vio
 struct IMU_MSG
 {
-    double header;
+    double header{};
     Eigen::Vector3d linear_acceleration;
     Eigen::Vector3d angular_velocity;
 };
-typedef std::shared_ptr<IMU_MSG const> ImuConstPtr;
+using ImuConstPtr = std::shared_ptr<IMU_MSG const>;
 
-//image for vio    
-struct IMG_MSG {
-    double header;
+//image for vio
+struct IMG_MSG
+{
+    double header{};
     vector<Vector3d> points;
     vector<int> id_of_point;
     vector<float> u_of_point;
@@ -37,8 +35,8 @@ struct IMG_MSG {
     vector<float> velocity_x_of_point;
     vector<float> velocity_y_of_point;
 };
-typedef std::shared_ptr <IMG_MSG const > ImgConstPtr;
-    
+using ImgConstPtr = std::shared_ptr<IMG_MSG const>;
+
 class System
 {
 public:
@@ -48,32 +46,27 @@ public:
 
     void PubImageData(double dStampSec, cv::Mat &img);
 
-    void PubImuData(double dStampSec, const Eigen::Vector3d &vGyr, 
-        const Eigen::Vector3d &vAcc);
+    void PubImuData(double dStampSec, const Eigen::Vector3d &vGyr,
+                    const Eigen::Vector3d &vAcc);
 
     // thread: visual-inertial odometry
     void ProcessBackEnd();
     void Draw();
-    
+
     pangolin::OpenGlRenderState s_cam;
     pangolin::View d_cam;
 
     FeatureTracker trackerData[NUM_OF_CAM];
 
 #ifdef __APPLE__
-    void InitDrawGL(); 
+    void InitDrawGL();
     void DrawGLFrame();
 #endif
 
 private:
-
     //feature tracker
     std::vector<uchar> r_status;
     std::vector<float> r_err;
-    // std::queue<ImageConstPtr> img_buf;
-
-    // ros::Publisher pub_img, pub_match;
-    // ros::Publisher pub_restart;
 
     double first_image_time;
     int pub_count = 1;
@@ -88,7 +81,6 @@ private:
     double current_time = -1;
     std::queue<ImuConstPtr> imu_buf;
     std::queue<ImgConstPtr> feature_buf;
-    // std::queue<PointCloudConstPtr> relo_buf;
     int sum_of_wait = 0;
 
     std::mutex m_buf;
@@ -111,5 +103,4 @@ private:
     std::vector<Eigen::Vector3d> vPath_to_draw;
     bool bStart_backend;
     std::vector<std::pair<std::vector<ImuConstPtr>, ImgConstPtr>> getMeasurements();
-    
 };
