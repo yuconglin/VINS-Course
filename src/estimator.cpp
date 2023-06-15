@@ -17,8 +17,8 @@ Estimator::Estimator() : f_manager{Rs} {
   for (size_t i = 0; i < WINDOW_SIZE + 1; i++) {
     pre_integrations[i] = nullptr;
   }
-  for (auto &it : all_image_frame) {
-    it.second.pre_integration = nullptr;
+  for (auto &[_, image_frame] : all_image_frame) {
+    image_frame.pre_integration = nullptr;
   }
   tmp_pre_integration = nullptr;
 
@@ -29,8 +29,6 @@ void Estimator::setParameter() {
   for (int i = 0; i < NUM_OF_CAM; i++) {
     tic[i] = TIC[i];
     ric[i] = RIC[i];
-    // cout << "1 Estimator::setParameter tic: " << tic[i].transpose()
-    //     << " ric: " << ric[i] << endl;
   }
   cout << "1 Estimator::setParameter FOCAL_LENGTH: " << FOCAL_LENGTH << endl;
   f_manager.setRic(ric);
@@ -49,24 +47,27 @@ void Estimator::clearState() {
     linear_acceleration_buf[i].clear();
     angular_velocity_buf[i].clear();
 
-    if (pre_integrations[i] != nullptr) delete pre_integrations[i];
+    if (pre_integrations[i] != nullptr) {
+      delete pre_integrations[i];
+    }
     pre_integrations[i] = nullptr;
   }
 
   for (int i = 0; i < NUM_OF_CAM; i++) {
-    tic[i] = Vector3d::Zero();
-    ric[i] = Matrix3d::Identity();
+    tic[i].setZero();
+    ric[i].setIdentity();
   }
 
-  for (auto &it : all_image_frame) {
-    if (it.second.pre_integration != nullptr) {
-      delete it.second.pre_integration;
-      it.second.pre_integration = nullptr;
+  for (auto &[_, image_frame] : all_image_frame) {
+    if (image_frame.pre_integration != nullptr) {
+      delete image_frame.pre_integration;
+      image_frame.pre_integration = nullptr;
     }
   }
 
   solver_flag = INITIAL;
-  first_imu = false, sum_of_back = 0;
+  first_imu = false;
+  sum_of_back = 0;
   sum_of_front = 0;
   frame_count = 0;
   solver_flag = INITIAL;
@@ -74,8 +75,9 @@ void Estimator::clearState() {
   all_image_frame.clear();
   td = TD;
 
-  if (tmp_pre_integration != nullptr) delete tmp_pre_integration;
-
+  if (tmp_pre_integration != nullptr) {
+    delete tmp_pre_integration;
+  }
   tmp_pre_integration = nullptr;
 
   last_marginalization_parameter_blocks.clear();
@@ -85,8 +87,8 @@ void Estimator::clearState() {
   failure_occur = 0;
   relocalization_info = 0;
 
-  drift_correct_r = Matrix3d::Identity();
-  drift_correct_t = Vector3d::Zero();
+  drift_correct_r.setIdentity();
+  drift_correct_t.setZero();
 }
 
 void Estimator::processIMU(double dt, const Vector3d &linear_acceleration,
@@ -101,10 +103,10 @@ void Estimator::processIMU(double dt, const Vector3d &linear_acceleration,
     pre_integrations[frame_count] =
         new IntegrationBase{acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]};
   }
+
   if (frame_count != 0) {
     pre_integrations[frame_count]->push_back(dt, linear_acceleration,
                                              angular_velocity);
-    // if(solver_flag != NON_LINEAR)
     tmp_pre_integration->push_back(dt, linear_acceleration, angular_velocity);
 
     dt_buf[frame_count].push_back(dt);
@@ -112,14 +114,15 @@ void Estimator::processIMU(double dt, const Vector3d &linear_acceleration,
     angular_velocity_buf[frame_count].push_back(angular_velocity);
 
     int j = frame_count;
-    Vector3d un_acc_0 = Rs[j] * (acc_0 - Bas[j]) - g;
-    Vector3d un_gyr = 0.5 * (gyr_0 + angular_velocity) - Bgs[j];
+    const Vector3d un_acc_0 = Rs[j] * (acc_0 - Bas[j]) - g;
+    const Vector3d un_gyr = 0.5 * (gyr_0 + angular_velocity) - Bgs[j];
     Rs[j] *= Utility::deltaQ(un_gyr * dt).toRotationMatrix();
-    Vector3d un_acc_1 = Rs[j] * (linear_acceleration - Bas[j]) - g;
-    Vector3d un_acc = 0.5 * (un_acc_0 + un_acc_1);
+    const Vector3d un_acc_1 = Rs[j] * (linear_acceleration - Bas[j]) - g;
+    const Vector3d un_acc = 0.5 * (un_acc_0 + un_acc_1);
     Ps[j] += dt * Vs[j] + 0.5 * dt * dt * un_acc;
     Vs[j] += dt * un_acc;
   }
+
   acc_0 = linear_acceleration;
   gyr_0 = angular_velocity;
 }
@@ -127,36 +130,30 @@ void Estimator::processIMU(double dt, const Vector3d &linear_acceleration,
 void Estimator::processImage(
     const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image,
     double header) {
-  // ROS_DEBUG("new image coming ------------------------------------------");
-  // cout << "Adding feature points: " << image.size()<<endl;
-  if (f_manager.addFeatureCheckParallax(frame_count, image, td))
+  if (f_manager.addFeatureCheckParallax(frame_count, image, td)) {
     marginalization_flag = MARGIN_OLD;
-  else
+  } else {
     marginalization_flag = MARGIN_SECOND_NEW;
+  }
 
-  // ROS_DEBUG("this frame is--------------------%s", marginalization_flag ?
-  // "reject" : "accept"); ROS_DEBUG("%s", marginalization_flag ? "Non-keyframe"
-  // : "Keyframe"); ROS_DEBUG("Solving %d", frame_count);
-  // cout << "number of feature: " << f_manager.getFeatureCount()<<endl;
   Headers[frame_count] = header;
 
   ImageFrame imageframe(image, header);
   imageframe.pre_integration = tmp_pre_integration;
-  all_image_frame.insert(make_pair(header, imageframe));
+  all_image_frame.emplace(header, imageframe);
+
   tmp_pre_integration =
       new IntegrationBase{acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]};
 
   if (ESTIMATE_EXTRINSIC == 2) {
     cout << "calibrating extrinsic param, rotation movement is needed" << endl;
+
     if (frame_count != 0) {
-      vector<pair<Vector3d, Vector3d>> corres =
+      const vector<pair<Vector3d, Vector3d>> corres =
           f_manager.getCorresponding(frame_count - 1, frame_count);
       Matrix3d calib_ric;
       if (initial_ex_rotation.CalibrationExRotation(
               corres, pre_integrations[frame_count]->delta_q, calib_ric)) {
-        // ROS_WARN("initial extrinsic rotation calib success");
-        // ROS_WARN_STREAM("initial extrinsic rotation: " << endl
-        //    << calib_ric);
         ric[0] = calib_ric;
         RIC[0] = calib_ric;
         ESTIMATE_EXTRINSIC = 1;
@@ -167,17 +164,17 @@ void Estimator::processImage(
   if (solver_flag == INITIAL) {
     if (frame_count == WINDOW_SIZE) {
       bool result = false;
+
       if (ESTIMATE_EXTRINSIC != 2 && (header - initial_timestamp) > 0.1) {
-        // cout << "1 initialStructure" << endl;
         result = initialStructure();
         initial_timestamp = header;
       }
+
       if (result) {
         solver_flag = NON_LINEAR;
         solveOdometry();
         slideWindow();
         f_manager.removeFailures();
-        cout << "Initialization finish!" << endl;
         last_R = Rs[WINDOW_SIZE];
         last_P = Ps[WINDOW_SIZE];
         last_R0 = Rs[0];
@@ -189,14 +186,11 @@ void Estimator::processImage(
   } else {
     TicToc t_solve;
     solveOdometry();
-    // ROS_DEBUG("solver costs: %fms", t_solve.toc());
 
     if (failureDetection()) {
-      // ROS_WARN("failure detection!");
       failure_occur = 1;
       clearState();
       setParameter();
-      // ROS_WARN("system reboot!");
       return;
     }
 
@@ -206,7 +200,9 @@ void Estimator::processImage(
     // ROS_DEBUG("marginalization costs: %fms", t_margin.toc());
     // prepare output of VINS
     key_poses.clear();
-    for (int i = 0; i <= WINDOW_SIZE; i++) key_poses.push_back(Ps[i]);
+    for (int i = 0; i <= WINDOW_SIZE; i++) {
+      key_poses.push_back(Ps[i]);
+    }
 
     last_R = Rs[WINDOW_SIZE];
     last_P = Ps[WINDOW_SIZE];
@@ -214,53 +210,57 @@ void Estimator::processImage(
     last_P0 = Ps[0];
   }
 }
+
 bool Estimator::initialStructure() {
   TicToc t_sfm;
   // check imu observibility
   {
+    Vector3d sum_g = Vector3d::Zero();
+
     map<double, ImageFrame>::iterator frame_it;
-    Vector3d sum_g;
     for (frame_it = all_image_frame.begin(), frame_it++;
          frame_it != all_image_frame.end(); frame_it++) {
       double dt = frame_it->second.pre_integration->sum_dt;
       Vector3d tmp_g = frame_it->second.pre_integration->delta_v / dt;
       sum_g += tmp_g;
     }
-    Vector3d aver_g;
-    aver_g = sum_g * 1.0 / ((int)all_image_frame.size() - 1);
+    const Vector3d aver_g = sum_g * 1.0 / (all_image_frame.size() - 1);
+
     double var = 0;
     for (frame_it = all_image_frame.begin(), frame_it++;
          frame_it != all_image_frame.end(); frame_it++) {
-      double dt = frame_it->second.pre_integration->sum_dt;
-      Vector3d tmp_g = frame_it->second.pre_integration->delta_v / dt;
+      const double dt = frame_it->second.pre_integration->sum_dt;
+      const Vector3d tmp_g = frame_it->second.pre_integration->delta_v / dt;
       var += (tmp_g - aver_g).transpose() * (tmp_g - aver_g);
-      // cout << "frame g " << tmp_g.transpose() << endl;
     }
-    var = sqrt(var / ((int)all_image_frame.size() - 1));
-    // ROS_WARN("IMU variation %f!", var);
+    var = sqrt(var / (all_image_frame.size() - 1));
+
     if (var < 0.25) {
       // ROS_INFO("IMU excitation not enouth!");
       // return false;
     }
   }
+
   // global sfm
   Quaterniond Q[frame_count + 1];
   Vector3d T[frame_count + 1];
   map<int, Vector3d> sfm_tracked_points;
   vector<SFMFeature> sfm_f;
-  for (auto &it_per_id : f_manager.feature) {
+
+  for (const auto &it_per_id : f_manager.feature) {
     int imu_j = it_per_id.start_frame - 1;
     SFMFeature tmp_feature;
     tmp_feature.state = false;
     tmp_feature.id = it_per_id.feature_id;
     for (auto &it_per_frame : it_per_id.feature_per_frame) {
       imu_j++;
-      Vector3d pts_j = it_per_frame.point;
-      tmp_feature.observation.push_back(
-          make_pair(imu_j, Eigen::Vector2d{pts_j.x(), pts_j.y()}));
+      const Vector3d &pts_j = it_per_frame.point;
+      tmp_feature.observation.emplace_back(
+          imu_j, Eigen::Vector2d{pts_j.x(), pts_j.y()});
     }
     sfm_f.push_back(tmp_feature);
   }
+
   Matrix3d relative_R;
   Vector3d relative_T;
   int l;
@@ -268,9 +268,9 @@ bool Estimator::initialStructure() {
     cout << "Not enough features or parallax; Move device around" << endl;
     return false;
   }
-  GlobalSFM sfm;
-  if (!sfm.construct(frame_count + 1, Q, T, l, relative_R, relative_T, sfm_f,
-                     sfm_tracked_points)) {
+
+  if (!GlobalSFM::construct(frame_count + 1, Q, T, l, relative_R, relative_T,
+                            sfm_f, sfm_tracked_points)) {
     cout << "global SFM failed!" << endl;
     marginalization_flag = MARGIN_OLD;
     return false;
@@ -418,20 +418,21 @@ bool Estimator::relativePose(Matrix3d &relative_R, Vector3d &relative_T,
   // find previous frame which contians enough correspondance and parallex with
   // newest frame
   for (int i = 0; i < WINDOW_SIZE; i++) {
-    vector<pair<Vector3d, Vector3d>> corres;
-    corres = f_manager.getCorresponding(i, WINDOW_SIZE);
+    const vector<pair<Vector3d, Vector3d>> corres =
+        f_manager.getCorresponding(i, WINDOW_SIZE);
+
     if (corres.size() > 20) {
       double sum_parallax = 0;
-      double average_parallax;
-      for (int j = 0; j < int(corres.size()); j++) {
-        Vector2d pts_0(corres[j].first(0), corres[j].first(1));
-        Vector2d pts_1(corres[j].second(0), corres[j].second(1));
-        double parallax = (pts_0 - pts_1).norm();
-        sum_parallax = sum_parallax + parallax;
+
+      for (size_t j = 0; j < corres.size(); j++) {
+        const Vector2d pts_0(corres[j].first(0), corres[j].first(1));
+        const Vector2d pts_1(corres[j].second(0), corres[j].second(1));
+        sum_parallax += (pts_0 - pts_1).norm();
       }
-      average_parallax = 1.0 * sum_parallax / int(corres.size());
+
+      const double average_parallax = 1.0 * sum_parallax / int(corres.size());
       if (average_parallax * 460 > 30 &&
-          m_estimator.solveRelativeRT(corres, relative_R, relative_T)) {
+          MotionEstimation::solveRelativeRT(corres, relative_R, relative_T)) {
         l = i;
         // ROS_DEBUG("average_parallax %f choose l %d and newest frame to
         // triangulate the whole structure", average_parallax * 460, l);
@@ -443,11 +444,13 @@ bool Estimator::relativePose(Matrix3d &relative_R, Vector3d &relative_T,
 }
 
 void Estimator::solveOdometry() {
-  if (frame_count < WINDOW_SIZE) return;
+  if (frame_count < WINDOW_SIZE) {
+    return;
+  }
+
   if (solver_flag == NON_LINEAR) {
     TicToc t_tri;
     f_manager.triangulate(Ps, tic, ric);
-    // cout << "triangulation costs : " << t_tri.toc() << endl;
     backendOptimization();
   }
 }
@@ -624,8 +627,7 @@ bool Estimator::failureDetection() {
 }
 
 void Estimator::MargOldFrame() {
-  backend::LossFunction *lossfunction;
-  lossfunction = new backend::CauchyLoss(1.0);
+  backend::LossFunction *lossfunction = new backend::CauchyLoss(1.0);
 
   // step1. 构建 problem
   backend::Problem problem(backend::Problem::ProblemType::SLAM_PROBLEM);
@@ -689,15 +691,20 @@ void Estimator::MargOldFrame() {
     // 遍历每一个特征
     for (auto &it_per_id : f_manager.feature) {
       it_per_id.used_num = it_per_id.feature_per_frame.size();
-      if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))
+      if (!(it_per_id.used_num >= 2 &&
+            it_per_id.start_frame < WINDOW_SIZE - 2)) {
         continue;
+      }
 
       ++feature_index;
 
-      int imu_i = it_per_id.start_frame, imu_j = imu_i - 1;
-      if (imu_i != 0) continue;
+      const int imu_i = it_per_id.start_frame;
+      if (imu_i != 0) {
+        continue;
+      }
+      int imu_j = imu_i - 1;
 
-      Vector3d pts_i = it_per_id.feature_per_frame[0].point;
+      const Vector3d &pts_i = it_per_id.feature_per_frame[0].point;
 
       shared_ptr<backend::VertexInverseDepth> verterxPoint(
           new backend::VertexInverseDepth());
@@ -709,9 +716,11 @@ void Estimator::MargOldFrame() {
       // 遍历所有的观测
       for (auto &it_per_frame : it_per_id.feature_per_frame) {
         imu_j++;
-        if (imu_i == imu_j) continue;
+        if (imu_i == imu_j) {
+          continue;
+        }
 
-        Vector3d pts_j = it_per_frame.point;
+        const Vector3d &pts_j = it_per_frame.point;
 
         std::shared_ptr<backend::EdgeReprojection> edge(
             new backend::EdgeReprojection(pts_i, pts_j));
@@ -742,10 +751,8 @@ void Estimator::MargOldFrame() {
       problem.ExtendHessiansPriorSize(
           15);  // 但是这个 prior 还是之前的维度，需要扩展下装新的pose
     } else {
-      Hprior_ = MatXX(pose_dim, pose_dim);
-      Hprior_.setZero();
-      bprior_ = VecX(pose_dim);
-      bprior_.setZero();
+      Hprior_ = MatXX::Zero(pose_dim, pose_dim);
+      bprior_ = VecX::Zero(pose_dim);
       problem.SetHessianPrior(Hprior_);  // 告诉这个 problem
       problem.SetbPrior(bprior_);
     }
@@ -760,12 +767,12 @@ void Estimator::MargOldFrame() {
   errprior_ = problem.GetErrPrior();
   Jprior_inv_ = problem.GetJtPrior();
 }
+
 void Estimator::MargNewFrame() {
   // step1. 构建 problem
   backend::Problem problem(backend::Problem::ProblemType::SLAM_PROBLEM);
   vector<shared_ptr<backend::VertexPose>> vertexCams_vec;
   vector<shared_ptr<backend::VertexSpeedBias>> vertexVB_vec;
-  //    vector<backend::Point3d> points;
   int pose_dim = 0;
 
   // 先把 外参数
@@ -815,10 +822,8 @@ void Estimator::MargNewFrame() {
       problem.ExtendHessiansPriorSize(
           15);  // 但是这个 prior 还是之前的维度，需要扩展下装新的pose
     } else {
-      Hprior_ = MatXX(pose_dim, pose_dim);
-      Hprior_.setZero();
-      bprior_ = VecX(pose_dim);
-      bprior_.setZero();
+      Hprior_ = MatXX::Zero(pose_dim, pose_dim);
+      bprior_ = VecX::Zero(pose_dim);
     }
   }
 
@@ -832,9 +837,9 @@ void Estimator::MargNewFrame() {
   errprior_ = problem.GetErrPrior();
   Jprior_inv_ = problem.GetJtPrior();
 }
+
 void Estimator::problemSolve() {
-  backend::LossFunction *lossfunction;
-  lossfunction = new backend::CauchyLoss(1.0);
+  backend::LossFunction *lossfunction = new backend::CauchyLoss(1.0);
   //    lossfunction = new backend::TukeyLoss(1.0);
 
   // step1. 构建 problem
@@ -889,7 +894,9 @@ void Estimator::problemSolve() {
   // IMU
   for (int i = 0; i < WINDOW_SIZE; i++) {
     int j = i + 1;
-    if (pre_integrations[j]->sum_dt > 10.0) continue;
+    if (pre_integrations[j]->sum_dt > 10.0) {
+      continue;
+    }
 
     std::shared_ptr<backend::EdgeImu> imuEdge(
         new backend::EdgeImu(pre_integrations[j]));
@@ -909,13 +916,16 @@ void Estimator::problemSolve() {
     // 遍历每一个特征
     for (auto &it_per_id : f_manager.feature) {
       it_per_id.used_num = it_per_id.feature_per_frame.size();
-      if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))
+      if (!(it_per_id.used_num >= 2 &&
+            it_per_id.start_frame < WINDOW_SIZE - 2)) {
         continue;
+      }
 
       ++feature_index;
 
-      int imu_i = it_per_id.start_frame, imu_j = imu_i - 1;
-      Vector3d pts_i = it_per_id.feature_per_frame[0].point;
+      int imu_i = it_per_id.start_frame;
+      int imu_j = imu_i - 1;
+      const Vector3d &pts_i = it_per_id.feature_per_frame[0].point;
 
       shared_ptr<backend::VertexInverseDepth> verterxPoint(
           new backend::VertexInverseDepth());
@@ -928,9 +938,11 @@ void Estimator::problemSolve() {
       // 遍历所有的观测
       for (auto &it_per_frame : it_per_id.feature_per_frame) {
         imu_j++;
-        if (imu_i == imu_j) continue;
+        if (imu_i == imu_j) {
+          continue;
+        }
 
-        Vector3d pts_j = it_per_frame.point;
+        const Vector3d &pts_j = it_per_frame.point;
 
         std::shared_ptr<backend::EdgeReprojection> edge(
             new backend::EdgeReprojection(pts_i, pts_j));
@@ -1032,14 +1044,14 @@ void Estimator::backendOptimization() {
   } else {
     if (Hprior_.rows() > 0) {
       vector2double();
-
       MargNewFrame();
 
       std::unordered_map<long, double *> addr_shift;
+
       for (int i = 0; i <= WINDOW_SIZE; i++) {
-        if (i == WINDOW_SIZE - 1)
+        if (i == WINDOW_SIZE - 1) {
           continue;
-        else if (i == WINDOW_SIZE) {
+        } else if (i == WINDOW_SIZE) {
           addr_shift[reinterpret_cast<long>(para_Pose[i])] = para_Pose[i - 1];
           addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] =
               para_SpeedBias[i - 1];
@@ -1049,8 +1061,11 @@ void Estimator::backendOptimization() {
               para_SpeedBias[i];
         }
       }
-      for (int i = 0; i < NUM_OF_CAM; i++)
+
+      for (int i = 0; i < NUM_OF_CAM; i++) {
         addr_shift[reinterpret_cast<long>(para_Ex_Pose[i])] = para_Ex_Pose[i];
+      }
+
       if (ESTIMATE_TD) {
         addr_shift[reinterpret_cast<long>(para_Td[0])] = para_Td[0];
       }
@@ -1061,10 +1076,12 @@ void Estimator::backendOptimization() {
 void Estimator::slideWindow() {
   TicToc t_margin;
   if (marginalization_flag == MARGIN_OLD) {
-    double t_0 = Headers[0];
+    const double t_0 = Headers[0];
     back_R0 = Rs[0];
     back_P0 = Ps[0];
+
     if (frame_count == WINDOW_SIZE) {
+      // move {i + 1} to {i}.
       for (int i = 0; i < WINDOW_SIZE; i++) {
         Rs[i].swap(Rs[i + 1]);
 
@@ -1080,6 +1097,7 @@ void Estimator::slideWindow() {
         Bas[i].swap(Bas[i + 1]);
         Bgs[i].swap(Bgs[i + 1]);
       }
+
       Headers[WINDOW_SIZE] = Headers[WINDOW_SIZE - 1];
       Ps[WINDOW_SIZE] = Ps[WINDOW_SIZE - 1];
       Vs[WINDOW_SIZE] = Vs[WINDOW_SIZE - 1];
@@ -1096,15 +1114,15 @@ void Estimator::slideWindow() {
       angular_velocity_buf[WINDOW_SIZE].clear();
 
       if (true || solver_flag == INITIAL) {
-        map<double, ImageFrame>::iterator it_0;
-        it_0 = all_image_frame.find(t_0);
+        auto it_0 = all_image_frame.find(t_0);
         delete it_0->second.pre_integration;
         it_0->second.pre_integration = nullptr;
 
-        for (map<double, ImageFrame>::iterator it = all_image_frame.begin();
-             it != it_0; ++it) {
-          if (it->second.pre_integration) delete it->second.pre_integration;
-          it->second.pre_integration = NULL;
+        for (auto it = all_image_frame.begin(); it != it_0; ++it) {
+          if (it->second.pre_integration) {
+            delete it->second.pre_integration;
+          }
+          it->second.pre_integration = nullptr;
         }
 
         all_image_frame.erase(all_image_frame.begin(), it_0);
@@ -1115,10 +1133,12 @@ void Estimator::slideWindow() {
   } else {
     if (frame_count == WINDOW_SIZE) {
       for (unsigned int i = 0; i < dt_buf[frame_count].size(); i++) {
-        double tmp_dt = dt_buf[frame_count][i];
-        Vector3d tmp_linear_acceleration =
+        const double tmp_dt = dt_buf[frame_count][i];
+
+        const Vector3d &tmp_linear_acceleration =
             linear_acceleration_buf[frame_count][i];
-        Vector3d tmp_angular_velocity = angular_velocity_buf[frame_count][i];
+        const Vector3d &tmp_angular_velocity =
+            angular_velocity_buf[frame_count][i];
 
         pre_integrations[frame_count - 1]->push_back(
             tmp_dt, tmp_linear_acceleration, tmp_angular_velocity);
@@ -1126,6 +1146,7 @@ void Estimator::slideWindow() {
         dt_buf[frame_count - 1].push_back(tmp_dt);
         linear_acceleration_buf[frame_count - 1].push_back(
             tmp_linear_acceleration);
+
         angular_velocity_buf[frame_count - 1].push_back(tmp_angular_velocity);
       }
 
@@ -1154,18 +1175,17 @@ void Estimator::slideWindowNew() {
   sum_of_front++;
   f_manager.removeFront(frame_count);
 }
+
 // real marginalization is removed in solve_ceres()
 void Estimator::slideWindowOld() {
   sum_of_back++;
 
-  bool shift_depth = solver_flag == NON_LINEAR ? true : false;
-  if (shift_depth) {
-    Matrix3d R0, R1;
-    Vector3d P0, P1;
-    R0 = back_R0 * ric[0];
-    R1 = Rs[0] * ric[0];
-    P0 = back_P0 + back_R0 * tic[0];
-    P1 = Ps[0] + Rs[0] * tic[0];
+  if (solver_flag == NON_LINEAR) {
+    // We need to shift depth in this case.
+    const Matrix3d R0 = back_R0 * ric[0];
+    const Matrix3d R1 = Rs[0] * ric[0];
+    const Vector3d P0 = back_P0 + back_R0 * tic[0];
+    const Vector3d P1 = Ps[0] + Rs[0] * tic[0];
     f_manager.removeBackShiftDepth(R0, P0, R1, P1);
   } else
     f_manager.removeBack();

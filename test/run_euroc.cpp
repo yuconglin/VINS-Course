@@ -22,6 +22,7 @@ string sData_path = "/home/dataset/EuRoC/MH-05/mav0/";
 string sConfig_path = "../config/";
 
 // ./bin/run_euroc ~/slam_data/vins_data/MH_05_difficult/mav0/ config/
+// ./bin/run_euroc ~/slam_dataset/EuRoc/MH_05_difficult/mav0/ config/
 
 std::shared_ptr<System> pSystem;
 
@@ -44,8 +45,6 @@ void PubImuData() {
     std::istringstream ssImuData(sImu_line);
     ssImuData >> dStampNSec >> vGyr.x() >> vGyr.y() >> vGyr.z() >> vAcc.x() >>
         vAcc.y() >> vAcc.z();
-    // cout << "Imu t: " << fixed << dStampNSec << " gyr: " << vGyr.transpose()
-    // << " acc: " << vAcc.transpose() << endl;
     pSystem->PubImuData(dStampNSec / 1e9, vGyr, vAcc);
     usleep(5000 * nDelayTimes);
   }

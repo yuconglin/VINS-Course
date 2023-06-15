@@ -221,7 +221,6 @@ void System::PubImuData(double dStampSec, const Eigen::Vector3d &vGyr,
 void System::ProcessBackEnd() {
   cout << "1 ProcessBackEnd start" << endl;
   while (bStart_backend) {
-    // cout << "1 process()" << endl;
     vector<pair<vector<ImuConstPtr>, ImgConstPtr>> measurements;
 
     unique_lock<mutex> lk(m_buf);
@@ -234,17 +233,24 @@ void System::ProcessBackEnd() {
            << " imu_buf size: " << imu_buf.size() << endl;
     }
     lk.unlock();
+
     m_estimator.lock();
-    for (auto &measurement : measurements) {
-      auto img_msg = measurement.second;
+
+    for (const auto &[imu_msgs, img_msg] : measurements) {
       double dx = 0, dy = 0, dz = 0, rx = 0, ry = 0, rz = 0;
-      for (auto &imu_msg : measurement.first) {
-        double t = imu_msg->header;
-        double img_t = img_msg->header + estimator.td;
+
+      for (const auto &imu_msg : imu_msgs) {
+        const double t = imu_msg->header;
+        const double img_t = img_msg->header + estimator.td;
+
         if (t <= img_t) {
-          if (current_time < 0) current_time = t;
-          double dt = t - current_time;
+          if (current_time < 0) {
+            current_time = t;
+          }
+
+          const double dt = t - current_time;
           assert(dt >= 0);
+
           current_time = t;
           dx = imu_msg->linear_acceleration.x();
           dy = imu_msg->linear_acceleration.y();
@@ -252,40 +258,38 @@ void System::ProcessBackEnd() {
           rx = imu_msg->angular_velocity.x();
           ry = imu_msg->angular_velocity.y();
           rz = imu_msg->angular_velocity.z();
+
           estimator.processIMU(dt, Vector3d(dx, dy, dz), Vector3d(rx, ry, rz));
-          // printf("1 BackEnd imu: dt:%f a: %f %f %f w: %f %f %f\n",dt, dx, dy,
-          // dz, rx, ry, rz);
         } else {
-          double dt_1 = img_t - current_time;
-          double dt_2 = t - img_t;
+          const double dt_1 = img_t - current_time;
+          const double dt_2 = t - img_t;
           current_time = img_t;
           assert(dt_1 >= 0);
           assert(dt_2 >= 0);
           assert(dt_1 + dt_2 > 0);
-          double w1 = dt_2 / (dt_1 + dt_2);
-          double w2 = dt_1 / (dt_1 + dt_2);
+
+          const double w1 = dt_2 / (dt_1 + dt_2);
+          const double w2 = dt_1 / (dt_1 + dt_2);
           dx = w1 * dx + w2 * imu_msg->linear_acceleration.x();
           dy = w1 * dy + w2 * imu_msg->linear_acceleration.y();
           dz = w1 * dz + w2 * imu_msg->linear_acceleration.z();
           rx = w1 * rx + w2 * imu_msg->angular_velocity.x();
           ry = w1 * ry + w2 * imu_msg->angular_velocity.y();
           rz = w1 * rz + w2 * imu_msg->angular_velocity.z();
+
           estimator.processIMU(dt_1, Vector3d(dx, dy, dz),
                                Vector3d(rx, ry, rz));
-          // printf("dimu: dt:%f a: %f %f %f w: %f %f %f\n",dt_1, dx, dy, dz,
-          // rx, ry, rz);
         }
       }
 
-      // cout << "processing vision data with stamp:" << img_msg->header
-      //     << " img_msg->points.size: "<< img_msg->points.size() << endl;
-
       // TicToc t_s;
       map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> image;
+
       for (unsigned int i = 0; i < img_msg->points.size(); i++) {
         int v = img_msg->id_of_point[i] + 0.5;
         int feature_id = v / NUM_OF_CAM;
         int camera_id = v % NUM_OF_CAM;
+
         double x = img_msg->points[i].x();
         double y = img_msg->points[i].y();
         double z = img_msg->points[i].z();
@@ -293,21 +297,23 @@ void System::ProcessBackEnd() {
         double p_v = img_msg->v_of_point[i];
         double velocity_x = img_msg->velocity_x_of_point[i];
         double velocity_y = img_msg->velocity_y_of_point[i];
+
         assert(z == 1);
+
         Eigen::Matrix<double, 7, 1> xyz_uv_velocity;
         xyz_uv_velocity << x, y, z, p_u, p_v, velocity_x, velocity_y;
+
         image[feature_id].emplace_back(camera_id, xyz_uv_velocity);
       }
+
       TicToc t_processImage;
       estimator.processImage(image, img_msg->header);
 
       if (estimator.solver_flag == Estimator::SolverFlag::NON_LINEAR) {
-        Vector3d p_wi;
-        Quaterniond q_wi;
-        q_wi = Quaterniond(estimator.Rs[WINDOW_SIZE]);
-        p_wi = estimator.Ps[WINDOW_SIZE];
+        const Quaterniond q_wi = Quaterniond(estimator.Rs[WINDOW_SIZE]);
+        const Vector3d p_wi = estimator.Ps[WINDOW_SIZE];
         vPath_to_draw.push_back(p_wi);
-        double dStamp = estimator.Headers[WINDOW_SIZE];
+        const double dStamp = estimator.Headers[WINDOW_SIZE];
         cout << "1 BackEnd processImage dt: " << fixed << t_processImage.toc()
              << " stamp: " << dStamp << " p_wi: " << p_wi.transpose() << endl;
         ofs_pose << fixed << dStamp << " " << p_wi(0) << " " << p_wi(1) << " "
@@ -315,6 +321,7 @@ void System::ProcessBackEnd() {
                  << q_wi.y() << " " << q_wi.z() << endl;
       }
     }
+
     m_estimator.unlock();
   }
 }
@@ -334,15 +341,6 @@ void System::Draw() {
               .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0,
                          -1024.0f / 768.0f)
               .SetHandler(new pangolin::Handler3D(s_cam));
-
-  // pangolin::OpenGlRenderState s_cam(
-  //         pangolin::ProjectionMatrix(1024, 768, 500, 500, 512, 384, 0.1,
-  //         1000), pangolin::ModelViewLookAt(-5, 0, 15, 7, 0, 0, 1.0, 0.0, 0.0)
-  // );
-
-  // pangolin::View &d_cam = pangolin::CreateDisplay()
-  //         .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0, -1024.0f /
-  //         768.0f) .SetHandler(new pangolin::Handler3D(s_cam));
 
   while (pangolin::ShouldQuit() == false) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
