@@ -39,7 +39,7 @@ class FeaturePerFrame {
 
 class FeaturePerId {
  public:
-  const int feature_id;
+  int feature_id;
   int start_frame;
   vector<FeaturePerFrame> feature_per_frame;
 

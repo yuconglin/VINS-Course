@@ -218,7 +218,6 @@ bool construct(int frame_num, Quaterniond *q, Vector3d *T, int l,
   ceres::Problem problem;
   ceres::LocalParameterization *local_parameterization =
       new ceres::QuaternionParameterization();
-
   for (int i = 0; i < frame_num; i++) {
     // double array for ceres
     c_translation[i][0] = c_Translation[i].x();
@@ -263,7 +262,6 @@ bool construct(int frame_num, Quaterniond *q, Vector3d *T, int l,
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
   // std::cout << summary.BriefReport() << "\n";
-
   if (summary.termination_type == ceres::CONVERGENCE ||
       summary.final_cost < 5e-03) {
     // cout << "vision only BA converge" << endl;
@@ -271,7 +269,6 @@ bool construct(int frame_num, Quaterniond *q, Vector3d *T, int l,
     // cout << "vision only BA not converge " << endl;
     return false;
   }
-
   for (int i = 0; i < frame_num; i++) {
     q[i].w() = c_rotation[i][0];
     q[i].x() = c_rotation[i][1];
@@ -290,7 +287,6 @@ bool construct(int frame_num, Quaterniond *q, Vector3d *T, int l,
       sfm_tracked_points[sfm_f[i].id] = Vector3d(
           sfm_f[i].position[0], sfm_f[i].position[1], sfm_f[i].position[2]);
   }
-
   return true;
 }
 }  // namespace GlobalSFM
