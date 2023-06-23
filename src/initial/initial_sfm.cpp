@@ -261,12 +261,12 @@ bool construct(int frame_num, Quaterniond *q, Vector3d *T, int l,
   options.max_solver_time_in_seconds = 0.2;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  // std::cout << summary.BriefReport() << "\n";
+  //LOG(INFO) << summary.BriefReport() << "\n";
   if (summary.termination_type == ceres::CONVERGENCE ||
       summary.final_cost < 5e-03) {
-    // cout << "vision only BA converge" << endl;
+    // LOG(INFO) << "vision only BA converge" << endl;
   } else {
-    // cout << "vision only BA not converge " << endl;
+    // LOG(INFO) << "vision only BA not converge " << endl;
     return false;
   }
   for (int i = 0; i < frame_num; i++) {

@@ -51,13 +51,13 @@ int main(int argc, char** argv)
 
     if (vm.count("help"))
     {
-        std::cout << desc << std::endl;
+       LOG(INFO) << desc << std::endl;
         return 1;
     }
 
     if (!boost::filesystem::exists(inputDir) && !boost::filesystem::is_directory(inputDir))
     {
-        std::cerr << "# ERROR: Cannot find input directory " << inputDir << "." << std::endl;
+       LOG(ERROR) << "# ERROR: Cannot find input directory " << inputDir << "." << std::endl;
         return 1;
     }
 
@@ -80,23 +80,23 @@ int main(int argc, char** argv)
     }
     else
     {
-        std::cerr << "# ERROR: Unknown camera model: " << cameraModel << std::endl;
+       LOG(ERROR) << "# ERROR: Unknown camera model: " << cameraModel << std::endl;
         return 1;
     }
 
     switch (modelType)
     {
     case camodocal::Camera::KANNALA_BRANDT:
-        std::cout << "# INFO: Camera model: Kannala-Brandt" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Kannala-Brandt" << std::endl;
         break;
     case camodocal::Camera::MEI:
-        std::cout << "# INFO: Camera model: Mei" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Mei" << std::endl;
         break;
     case camodocal::Camera::PINHOLE:
-        std::cout << "# INFO: Camera model: Pinhole" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Pinhole" << std::endl;
         break;
     case camodocal::Camera::SCARAMUZZA:
-        std::cout << "# INFO: Camera model: Scaramuzza-Omnidirect" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Scaramuzza-Omnidirect" << std::endl;
         break;
     }
 
@@ -131,19 +131,19 @@ int main(int argc, char** argv)
 
         if (verbose)
         {
-            std::cerr << "# INFO: Adding " << imageFilenames.back() << std::endl;
+           LOG(ERROR) << "# INFO: Adding " << imageFilenames.back() << std::endl;
         }
     }
 
     if (imageFilenames.empty())
     {
-        std::cerr << "# ERROR: No chessboard images found." << std::endl;
+       LOG(ERROR) << "# ERROR: No chessboard images found." << std::endl;
         return 1;
     }
 
     if (verbose)
     {
-        std::cerr << "# INFO: # images: " << imageFilenames.size() << std::endl;
+       LOG(ERROR) << "# INFO: # images: " << imageFilenames.size() << std::endl;
     }
 
     std::sort(imageFilenames.begin(), imageFilenames.end());
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
         {
             if (verbose)
             {
-                std::cerr << "# INFO: Detected chessboard in image " << i + 1 << ", " << imageFilenames.at(i) << std::endl;
+               LOG(ERROR) << "# INFO: Detected chessboard in image " << i + 1 << ", " << imageFilenames.at(i) << std::endl;
             }
 
             calibration.addChessboardData(chessboard.getCorners());
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
         }
         else if (verbose)
         {
-            std::cerr << "# INFO: Did not detect chessboard in image " << i + 1 << std::endl;
+           LOG(ERROR) << "# INFO: Did not detect chessboard in image " << i + 1 << std::endl;
         }
         chessboardFound.at(i) = chessboard.cornersFound();
     }
@@ -187,13 +187,13 @@ int main(int argc, char** argv)
 
     if (calibration.sampleCount() < 10)
     {
-        std::cerr << "# ERROR: Insufficient number of detected chessboards." << std::endl;
+       LOG(ERROR) << "# ERROR: Insufficient number of detected chessboards." << std::endl;
         return 1;
     }
 
     if (verbose)
     {
-        std::cerr << "# INFO: Calibrating..." << std::endl;
+       LOG(ERROR) << "# INFO: Calibrating..." << std::endl;
     }
 
     double startTime = camodocal::timeInSeconds();
@@ -204,14 +204,14 @@ int main(int argc, char** argv)
 
     if (verbose)
     {
-        std::cout << "# INFO: Calibration took a total time of "
+       LOG(INFO) << "# INFO: Calibration took a total time of "
                   << std::fixed << std::setprecision(3) << camodocal::timeInSeconds() - startTime
                   << " sec.\n";
     }
 
     if (verbose)
     {
-        std::cerr << "# INFO: Wrote calibration file to " << cameraName + "_camera_calib.yaml" << std::endl;
+       LOG(ERROR) << "# INFO: Wrote calibration file to " << cameraName + "_camera_calib.yaml" << std::endl;
     }
 
     if (viewResults)

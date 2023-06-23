@@ -1,5 +1,7 @@
 #include "estimator.h"
 
+#include <glog/logging.h>
+
 #include <fstream>
 #include <ostream>
 
@@ -12,8 +14,6 @@
 using namespace myslam;
 
 Estimator::Estimator() : f_manager{Rs} {
-  // ROS_INFO("init begins");
-
   for (size_t i = 0; i < WINDOW_SIZE + 1; i++) {
     pre_integrations[i] = nullptr;
   }
@@ -30,7 +30,7 @@ void Estimator::setParameter() {
     tic[i] = TIC[i];
     ric[i] = RIC[i];
   }
-  cout << "1 Estimator::setParameter FOCAL_LENGTH: " << FOCAL_LENGTH << endl;
+  LOG(INFO) << "1 Estimator::setParameter FOCAL_LENGTH: " << FOCAL_LENGTH;
   f_manager.setRic(ric);
   project_sqrt_info_ = FOCAL_LENGTH / 1.5 * Matrix2d::Identity();
   td = TD;
@@ -158,7 +158,8 @@ void Estimator::processImage(
 
   if (ESTIMATE_EXTRINSIC == 2) {
     // That means we need to calibrate the extrinsics.
-    cout << "calibrating extrinsic param, rotation movement is needed" << endl;
+    LOG(INFO) << "calibrating extrinsic param, rotation movement is needed"
+              << endl;
 
     if (frame_count != 0) {
       const vector<pair<Vector3d, Vector3d>> corres =
@@ -282,13 +283,13 @@ bool Estimator::initialStructure() {
   Vector3d relative_T;
   int l;
   if (!relativePose(relative_R, relative_T, l)) {
-    cout << "Not enough features or parallax; Move device around" << endl;
+    LOG(INFO) << "Not enough features or parallax; Move device around" << endl;
     return false;
   }
 
   if (!GlobalSFM::construct(frame_count + 1, Q, T, l, relative_R, relative_T,
                             sfm_f, sfm_tracked_points)) {
-    cout << "global SFM failed!" << endl;
+    LOG(INFO) << "global SFM failed!" << endl;
     marginalization_flag = MARGIN_OLD;
     return false;
   }
@@ -342,14 +343,14 @@ bool Estimator::initialStructure() {
     }
 
     if (pts_3_vector.size() < 6) {
-      cout << "Not enough points for solve pnp pts_3_vector size "
-           << pts_3_vector.size() << endl;
+      LOG(INFO) << "Not enough points for solve pnp pts_3_vector size "
+                << pts_3_vector.size() << endl;
       return false;
     }
 
     cv::Mat D;
     if (!cv::solvePnP(pts_3_vector, pts_2_vector, K, D, rvec, t, 1)) {
-      cout << " solve pnp fail!" << endl;
+      LOG(INFO) << " solve pnp fail!" << endl;
       return false;
     }
 
@@ -371,7 +372,7 @@ bool Estimator::initialStructure() {
   if (visualInitialAlign()) {
     return true;
   }
-  cout << "misalign visual structure with IMU" << endl;
+  LOG(INFO) << "misalign visual structure with IMU" << endl;
   return false;
 }
 
@@ -614,9 +615,9 @@ void Estimator::double2vector() {
     relo_relative_yaw =
         Utility::normalizeAngle(Utility::R2ypr(Rs[relo_frame_local_index]).x() -
                                 Utility::R2ypr(relo_r).x());
-    // cout << "vins relo " << endl;
-    // cout << "vins relative_t " << relo_relative_t.transpose() << endl;
-    // cout << "vins relative_yaw " <<relo_relative_yaw << endl;
+    // LOG(INFO) << "vins relo " << endl;
+    // LOG(INFO) << "vins relative_t " << relo_relative_t.transpose() << endl;
+    // LOG(INFO) << "vins relative_yaw " <<relo_relative_yaw << endl;
     relocalization_info = 0;
   }
 }
@@ -1047,13 +1048,13 @@ void Estimator::problemSolve() {
 
   // update bprior_,  Hprior_ do not need update
   if (Hprior_.rows() > 0) {
-    std::cout << "----------- update bprior -------------\n";
-    std::cout << "             before: " << bprior_.norm() << std::endl;
-    std::cout << "                     " << errprior_.norm() << std::endl;
+    LOG(INFO) << "----------- update bprior -------------\n";
+    LOG(INFO) << "             before: " << bprior_.norm() << std::endl;
+    LOG(INFO) << "                     " << errprior_.norm() << std::endl;
     bprior_ = problem.GetbPrior();
     errprior_ = problem.GetErrPrior();
-    std::cout << "             after: " << bprior_.norm() << std::endl;
-    std::cout << "                    " << errprior_.norm() << std::endl;
+    LOG(INFO) << "             after: " << bprior_.norm() << std::endl;
+    LOG(INFO) << "                    " << errprior_.norm() << std::endl;
   }
 
   // update parameter
@@ -1089,7 +1090,7 @@ void Estimator::backendOptimization() {
   // 优化后的变量处理下自由度
   double2vector();
   // ROS_INFO("whole time for solver: %f", t_solver.toc());
-  std::cout << "whole time for solver: " << t_solver.toc() << " ms\n";
+  LOG(INFO) << "whole time for solver: " << t_solver.toc() << " ms\n";
 
   // 维护 marg
   TicToc t_whole_marginalization;

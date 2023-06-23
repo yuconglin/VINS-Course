@@ -1,4 +1,6 @@
 
+#include <gflags/gflags.h>
+#include <glog/logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,12 +20,14 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
-const int nDelayTimes = 2;
-string sData_path = "/home/dataset/EuRoC/MH-05/mav0/";
-string sConfig_path = "../config/";
+constexpr int nDelayTimes = 2;
+string sData_path;
+string sConfig_path;
 
-// ./bin/run_euroc ~/slam_data/vins_data/MH_05_difficult/mav0/ config/
-// ./bin/run_euroc ~/slam_dataset/EuRoc/MH_05_difficult/mav0/ config/
+// ./bin/run_euroc
+// --data_path=/home/yuconglin/slam_dataset/EuRoc/MH_05_difficult/mav0/
+// ./bin/run_euroc
+// --data_path=/home/yuconglin/slam_data/vins_data/MH_05_difficult/mav0/
 
 std::shared_ptr<System> pSystem;
 
@@ -31,7 +35,7 @@ void ReadCsv(const string& file_path,
              function<void(const vector<string>&)> process_function) {
   fstream file(file_path);
   if (!file.is_open()) {
-    cerr << "Failed to open file " << file_path << '\n';
+    LOG(ERROR) << "Failed to open file " << file_path << '\n';
     return;
   }
 
@@ -63,7 +67,7 @@ void ReadCsv(const string& file_path,
 
 void PubImuData() {
   const string sImu_data_file = sData_path + "imu0/data.csv";
-  cout << "Read Imu from " << sImu_data_file << '\n';
+  LOG(INFO) << "Read Imu from " << sImu_data_file << '\n';
 
   const auto process_imu = [&](const vector<string>& row) {
     const double dStampNSec = stod(row[0]);
@@ -78,7 +82,7 @@ void PubImuData() {
 
 void PubImageData() {
   const string sImage_file = sData_path + "cam0/data.csv";
-  cout << "Read image from " << sImage_file << '\n';
+  LOG(INFO) << "Read image from " << sImage_file << '\n';
 
   const auto process_image = [&](const vector<string>& row) {
     // Deals with data rows.
@@ -88,7 +92,7 @@ void PubImageData() {
 
     Mat img = imread(imagePath.c_str(), 0);
     if (img.empty()) {
-      cerr << "image is empty! Path: " << imagePath << endl;
+      LOG(ERROR) << "image is empty! Path: " << imagePath << endl;
       return;
     }
 
@@ -104,12 +108,12 @@ void PubImageData() {
 void DrawIMGandGLinMainThrd() {
   string sImage_file = sConfig_path + "MH_05_cam0.txt";
 
-  cout << "1 PubImageData start sImage_file: " << sImage_file << endl;
+  LOG(INFO) << "1 PubImageData start sImage_file: " << sImage_file << endl;
 
   ifstream fsImage;
   fsImage.open(sImage_file.c_str());
   if (!fsImage.is_open()) {
-    cerr << "Failed to open image file! " << sImage_file << endl;
+    LOG(ERROR) << "Failed to open image file! " << sImage_file << endl;
     return;
   }
 
@@ -121,13 +125,14 @@ void DrawIMGandGLinMainThrd() {
   while (std::getline(fsImage, sImage_line) && !sImage_line.empty()) {
     std::istringstream ssImuData(sImage_line);
     ssImuData >> dStampNSec >> sImgFileName;
-    // cout << "Image t : " << fixed << dStampNSec << " Name: " << sImgFileName
+    // LOG(INFO) << "Image t : " << fixed << dStampNSec << " Name: " <<
+    // sImgFileName
     // << endl;
     string imagePath = sData_path + "cam0/data/" + sImgFileName;
 
     Mat img = imread(imagePath.c_str(), 0);
     if (img.empty()) {
-      cerr << "image is empty! path: " << imagePath << endl;
+      LOG(ERROR) << "image is empty! path: " << imagePath << endl;
       return;
     }
     // pSystem->PubImageData(dStampNSec / 1e9, img);
@@ -154,16 +159,18 @@ void DrawIMGandGLinMainThrd() {
 }
 #endif
 
+DEFINE_string(data_path, "~/slam_dataset/EuRoc/MH_05_difficult/mav0/",
+              "Path to the data folder.");
+DEFINE_string(config_path, "config/", "Path to the config folder.");
+
 int main(int argc, char** argv) {
-  if (argc != 3) {
-    cerr << "./run_euroc PATH_TO_FOLDER/MH-05/mav0 PATH_TO_CONFIG/config \n"
-         << "For example: ./run_euroc "
-            "/home/stevencui/dataset/EuRoC/MH-05/mav0/ ../config/"
-         << endl;
-    return -1;
-  }
-  sData_path = argv[1];
-  sConfig_path = argv[2];
+  google::InitGoogleLogging(argv[0]);
+  FLAGS_stderrthreshold = google::INFO;
+  FLAGS_colorlogtostderr = true;
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
+  sData_path = FLAGS_data_path;
+  sConfig_path = FLAGS_config_path;
 
   pSystem.reset(new System(sConfig_path));
 
@@ -188,6 +195,6 @@ int main(int argc, char** argv) {
   thd_Draw.join();
 #endif
 
-  cout << "main end... see you ..." << endl;
+  LOG(INFO) << "main end... see you ..." << endl;
   return 0;
 }

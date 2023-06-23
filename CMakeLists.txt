@@ -14,7 +14,6 @@ find_package(Pangolin REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
 
-
 message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
 
 include_directories(
@@ -24,6 +23,9 @@ include_directories(
   ${Pangolin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
 )
+
+find_package(Glog REQUIRED)
+include_directories(${GLOG_INCLUDE_DIR})
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
@@ -42,7 +44,7 @@ add_library(camera_model SHARED
     src/camera_models/gpl/gpl.cc
     src/camera_models/gpl/EigenQuaternionParameterization.cc)
 
-target_link_libraries(camera_model ${Boost_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES})
+target_link_libraries(camera_model ${Boost_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES} glog)
 
 
 ADD_LIBRARY(MyVio SHARED
@@ -73,7 +75,7 @@ target_link_libraries(MyVio
   ${OpenCV_LIBS}  
   ${CERES_LIBRARIES}
 	${Pangolin_LIBRARIES}
-  camera_model)
+  camera_model glog)
 
 add_executable(run_euroc test/run_euroc.cpp)
 target_link_libraries(run_euroc 
