@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <eigen3/Eigen/Dense>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <opencv2/highgui.hpp>
@@ -26,61 +27,76 @@ string sConfig_path = "../config/";
 
 std::shared_ptr<System> pSystem;
 
-void PubImuData() {
-  string sImu_data_file = sConfig_path + "MH_05_imu0.txt";
-  cout << "1 PubImuData start sImu_data_filea: " << sImu_data_file << endl;
-  ifstream fsImu;
-  fsImu.open(sImu_data_file.c_str());
-  if (!fsImu.is_open()) {
-    cerr << "Failed to open imu file! " << sImu_data_file << endl;
+void ReadCsv(const string& file_path,
+             function<void(const vector<string>&)> process_function) {
+  fstream file(file_path);
+  if (!file.is_open()) {
+    cerr << "Failed to open file " << file_path << '\n';
     return;
   }
 
-  std::string sImu_line;
-  double dStampNSec = 0.0;
-  Vector3d vAcc;
-  Vector3d vGyr;
-  while (std::getline(fsImu, sImu_line) && !sImu_line.empty())  // read imu data
-  {
-    std::istringstream ssImuData(sImu_line);
-    ssImuData >> dStampNSec >> vGyr.x() >> vGyr.y() >> vGyr.z() >> vAcc.x() >>
-        vAcc.y() >> vAcc.z();
+  vector<string> row;
+  string line;
+  string word;
+  bool got_data = false;
+
+  while (getline(file, line)) {
+    row.clear();
+
+    stringstream str(line);
+    while (getline(str, word, ',')) {
+      row.push_back(word);
+    }
+    if (!got_data) {
+      // Deals with title row.
+      got_data = true;
+    } else {
+      // Deals with data rows.
+      assert(!row.empty());
+      // Deals with '\n' at the end of each line.
+      row.back().pop_back();
+      process_function(row);
+    }
+  }
+  file.close();
+}
+
+void PubImuData() {
+  const string sImu_data_file = sData_path + "imu0/data.csv";
+  cout << "Read Imu from " << sImu_data_file << '\n';
+
+  const auto process_imu = [&](const vector<string>& row) {
+    const double dStampNSec = stod(row[0]);
+    const Vector3d vGyr(stod(row[1]), stod(row[2]), stod(row[3]));
+    const Vector3d vAcc(stod(row[4]), stod(row[5]), stod(row[6]));
     pSystem->PubImuData(dStampNSec / 1e9, vGyr, vAcc);
     usleep(5000 * nDelayTimes);
-  }
-  fsImu.close();
+  };
+
+  ReadCsv(sImu_data_file, process_imu);
 }
 
 void PubImageData() {
-  string sImage_file = sConfig_path + "MH_05_cam0.txt";
+  const string sImage_file = sData_path + "cam0/data.csv";
+  cout << "Read image from " << sImage_file << '\n';
 
-  cout << "1 PubImageData start sImage_file: " << sImage_file << endl;
-
-  ifstream fsImage;
-  fsImage.open(sImage_file.c_str());
-  if (!fsImage.is_open()) {
-    cerr << "Failed to open image file! " << sImage_file << endl;
-    return;
-  }
-
-  std::string sImage_line;
-  double dStampNSec;
-  string sImgFileName;
-
-  while (std::getline(fsImage, sImage_line) && !sImage_line.empty()) {
-    std::istringstream ssImuData(sImage_line);
-    ssImuData >> dStampNSec >> sImgFileName;
-    string imagePath = sData_path + "cam0/data/" + sImgFileName;
+  const auto process_image = [&](const vector<string>& row) {
+    // Deals with data rows.
+    const double dStampNSec = stod(row[0]);
+    const string& sImgFileName = row[1];
+    const string imagePath = sData_path + "cam0/data/" + sImgFileName;
 
     Mat img = imread(imagePath.c_str(), 0);
     if (img.empty()) {
-      cerr << "image is empty! path: " << imagePath << endl;
+      cerr << "image is empty! Path: " << imagePath << endl;
       return;
     }
+
     pSystem->PubImageData(dStampNSec / 1e9, img);
     usleep(50000 * nDelayTimes);
-  }
-  fsImage.close();
+  };
+
+  ReadCsv(sImage_file, process_image);
 }
 
 #ifdef __APPLE__
@@ -138,7 +154,7 @@ void DrawIMGandGLinMainThrd() {
 }
 #endif
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   if (argc != 3) {
     cerr << "./run_euroc PATH_TO_FOLDER/MH-05/mav0 PATH_TO_CONFIG/config \n"
          << "For example: ./run_euroc "
