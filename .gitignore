@@ -14,4 +14,4 @@
 build/
 bin/
 
-pose_output.txt
+*pose_output.txt

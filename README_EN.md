@@ -68,3 +68,17 @@ For commercial inquiries, please contact Song Zhao <zhaosong@shenlanxueyuan.com>
 ## Acknowledgements
 
 We use [VINS-Mono](https://github.com/HKUST-Aerial-Robotics/VINS-Mono) as our base line code. Thanks Dr. Qin Tong, Prof. Shen etc very much.
+
+## Notes
+
+### Imu Data Processing
+1. Add most recent Imu data to the newest frame's pre_integration and updated the newest frame's predicted RPV values.
+
+### Image Data Processing
+1. Extract feature points and use them as the input of the image module.
+2. Determine the marginialization strategy: if there is sufficient parallex it will marginialize the oldest frame, otherwise the second newest frame.
+3. Create a new image frame and a new pre_integration.
+4. Calibrate the extrinsic rotation between camera and imu if not done yet.
+5. When the frame number reaches the window size: initialize with SFM if not done yet. Obtains the feature points' depth by triangulation and run the optimization. Shift elements and remove marginalized frame. Remove feature points that fail in depth estimation.
+6. If already initialized: Obtains the feature points' depth by triangulation and run the optimization. Shift elements and remove marginalized frame. Remove feature points that fail in depth estimation.
+7. The estimated poses of last frame of the window will be recorded as the results.

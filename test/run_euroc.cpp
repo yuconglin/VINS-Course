@@ -31,6 +31,19 @@ string sConfig_path;
 
 std::shared_ptr<System> pSystem;
 
+string GetDatasetName(const string& full_path) {
+  vector<string> words;
+  stringstream str(full_path);
+  string tmp;
+
+  while (getline(str, tmp, '/')) {
+    words.push_back(tmp);
+  }
+  assert(words.size() > 2);
+
+  return words[words.size() - 2];
+}
+
 void ReadCsv(const string& file_path,
              function<void(const vector<string>&)> process_function) {
   fstream file(file_path);
@@ -172,7 +185,7 @@ int main(int argc, char** argv) {
   sData_path = FLAGS_data_path;
   sConfig_path = FLAGS_config_path;
 
-  pSystem.reset(new System(sConfig_path));
+  pSystem.reset(new System(sConfig_path, GetDatasetName(sData_path)));
 
   std::thread thd_BackEnd(&System::ProcessBackEnd, pSystem);
 

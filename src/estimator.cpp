@@ -91,6 +91,8 @@ void Estimator::clearState() {
   drift_correct_t.setZero();
 }
 
+// Put the new IMU data into corresponding pre_integrations, and update the
+// predicted RPV values for the most recent frame.
 void Estimator::processIMU(double dt, const Vector3d &linear_acceleration,
                            const Vector3d &angular_velocity) {
   if (!first_imu) {
@@ -157,7 +159,7 @@ void Estimator::processImage(
       new IntegrationBase{acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]};
 
   if (ESTIMATE_EXTRINSIC == 2) {
-    // That means we need to calibrate the extrinsics.
+    // That means we need to calibrate the extrinsics rotation.
     LOG(INFO) << "calibrating extrinsic param, rotation movement is needed"
               << endl;
 

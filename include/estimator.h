@@ -115,6 +115,7 @@ class Estimator {
   vector<double *> last_marginalization_parameter_blocks;
   // timestamp v.s. image frame.
   map<double, ImageFrame> all_image_frame;
+  // The pre_integration created when a new image frame was added.
   IntegrationBase *tmp_pre_integration;
 
   // relocalization variable

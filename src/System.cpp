@@ -7,7 +7,8 @@ using namespace std;
 using namespace cv;
 using namespace pangolin;
 
-System::System(string sConfig_file_) : bStart_backend(true) {
+System::System(const string &sConfig_file_, const string &dataset_name)
+    : bStart_backend(true) {
   string sConfig_file = sConfig_file_ + "euroc_config.yaml";
 
   LOG(INFO) << "1 System() sConfig_file: " << sConfig_file << endl;
@@ -16,12 +17,11 @@ System::System(string sConfig_file_) : bStart_backend(true) {
   trackerData[0].readIntrinsicParameter(sConfig_file);
 
   estimator.setParameter();
-  ofs_pose.open("./pose_output.txt", fstream::out);
+  ofs_pose.open("./" + dataset_name + "_pose_output.txt", fstream::out);
   if (!ofs_pose.is_open()) {
     LOG(ERROR) << "ofs_pose is not open" << endl;
   }
-  // thread thd_RunBackend(&System::process,this);
-  // thd_RunBackend.detach();
+
   LOG(INFO) << "2 System() end" << endl;
 }
 
@@ -59,6 +59,7 @@ void System::PubImageData(double dStampSec, Mat &img) {
     last_image_time = dStampSec;
     return;
   }
+
   // detect unstable camera stream
   if (dStampSec - last_image_time > 1.0 || dStampSec < last_image_time) {
     LOG(ERROR) << "3 PubImageData image discontinue! reset the feature tracker!"
@@ -68,10 +69,13 @@ void System::PubImageData(double dStampSec, Mat &img) {
     pub_count = 1;
     return;
   }
+
   last_image_time = dStampSec;
+
   // frequency control
   if (round(1.0 * pub_count / (dStampSec - first_image_time)) <= FREQ) {
     PUB_THIS_FRAME = true;
+
     // reset the frequency control
     if (abs(1.0 * pub_count / (dStampSec - first_image_time) - FREQ) <
         0.01 * FREQ) {
@@ -90,25 +94,30 @@ void System::PubImageData(double dStampSec, Mat &img) {
     bool completed = false;
     completed |= trackerData[0].updateID(i);
 
-    if (!completed) break;
+    if (!completed) {
+      break;
+    }
   }
+
   if (PUB_THIS_FRAME) {
     pub_count++;
     shared_ptr<IMG_MSG> feature_points(new IMG_MSG());
     feature_points->header = dStampSec;
     vector<set<int>> hash_ids(NUM_OF_CAM);
+
     for (int i = 0; i < NUM_OF_CAM; i++) {
-      auto &un_pts = trackerData[i].cur_un_pts;
-      auto &cur_pts = trackerData[i].cur_pts;
-      auto &ids = trackerData[i].ids;
-      auto &pts_velocity = trackerData[i].pts_velocity;
+      const auto &un_pts = trackerData[i].cur_un_pts;
+      const auto &cur_pts = trackerData[i].cur_pts;
+      const auto &ids = trackerData[i].ids;
+      const auto &pts_velocity = trackerData[i].pts_velocity;
+
       for (unsigned int j = 0; j < ids.size(); j++) {
         if (trackerData[i].track_cnt[j] > 1) {
-          int p_id = ids[j];
+          const int p_id = ids[j];
           hash_ids[i].insert(p_id);
-          double x = un_pts[j].x;
-          double y = un_pts[j].y;
-          double z = 1;
+          const double x = un_pts[j].x;
+          const double y = un_pts[j].y;
+          const double z = 1;
           feature_points->points.push_back(Vector3d(x, y, z));
           feature_points->id_of_point.push_back(p_id * NUM_OF_CAM + i);
           feature_points->u_of_point.push_back(cur_pts[j].x);
@@ -117,7 +126,7 @@ void System::PubImageData(double dStampSec, Mat &img) {
           feature_points->velocity_y_of_point.push_back(pts_velocity[j].y);
         }
       }
-      //}
+
       // skip the first image; since no optical speed on frist image
       if (!init_pub) {
         LOG(INFO) << "4 PubImage init_pub skip the first image!" << endl;
@@ -151,12 +160,12 @@ void System::PubImageData(double dStampSec, Mat &img) {
   // LOG(INFO) << "5 PubImage" << endl;
 }
 
+// Get Imu and image messages from the queues.
 vector<pair<vector<ImuConstPtr>, ImgConstPtr>> System::getMeasurements() {
   vector<pair<vector<ImuConstPtr>, ImgConstPtr>> measurements;
 
   while (true) {
     if (imu_buf.empty() || feature_buf.empty()) {
-      // LOG(ERROR) << "1 imu_buf.empty() || feature_buf.empty()" << endl;
       return measurements;
     }
 
@@ -184,7 +193,10 @@ vector<pair<vector<ImuConstPtr>, ImgConstPtr>> System::getMeasurements() {
       imu_buf.pop();
     }
     // LOG(INFO) << "1 getMeasurements IMUs size: " << IMUs.size() << endl;
-    IMUs.emplace_back(imu_buf.front());
+    if (!imu_buf.empty()) {
+      IMUs.emplace_back(imu_buf.front());
+    }
+
     if (IMUs.empty()) {
       LOG(ERROR) << "no imu between two image" << endl;
     }
