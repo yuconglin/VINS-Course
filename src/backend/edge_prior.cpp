@@ -19,7 +19,7 @@ namespace backend {
 #ifndef USE_SO3_JACOBIAN
 template <typename Derived>
 static Eigen::Matrix<typename Derived::Scalar, 3, 3> skewSymmetric(
-    const Eigen::MatrixBase<Derived> &q) {
+    const Eigen::MatrixBase<Derived>& q) {
   Eigen::Matrix<typename Derived::Scalar, 3, 3> ans;
   ans << typename Derived::Scalar(0), -q(2), q(1), q(2),
       typename Derived::Scalar(0), -q(0), -q(1), q(0),
@@ -29,7 +29,7 @@ static Eigen::Matrix<typename Derived::Scalar, 3, 3> skewSymmetric(
 
 template <typename Derived>
 static Eigen::Matrix<typename Derived::Scalar, 4, 4> Qleft(
-    const Eigen::QuaternionBase<Derived> &q) {
+    const Eigen::QuaternionBase<Derived>& q) {
   Eigen::Quaternion<typename Derived::Scalar> qq = q;
   Eigen::Matrix<typename Derived::Scalar, 4, 4> ans;
   ans(0, 0) = qq.w(), ans.template block<1, 3>(0, 1) = -qq.vec().transpose();
@@ -44,37 +44,35 @@ static Eigen::Matrix<typename Derived::Scalar, 4, 4> Qleft(
 #endif
 
 void EdgeSE3Prior::ComputeResidual() {
-  VecX param_i = verticies_[0]->Parameters();
-  Qd Qi(param_i[6], param_i[3], param_i[4], param_i[5]);
-  Vec3 Pi = param_i.head<3>();
+  const VecX& param_i = verticies_[0]->Parameters();
+  const Qd Qi(param_i[6], param_i[3], param_i[4], param_i[5]);
+  const Vec3& Pi = param_i.head<3>();
 
-//   LOG(INFO) << Qi.vec().transpose() <<" "<< Qp_.vec().transpose()<<std::endl;
 // rotation error
 #ifdef USE_SO3_JACOBIAN
-  Sophus::SO3d ri(Qi);
-  Sophus::SO3d rp(Qp_);
-  Sophus::SO3d res_r = rp.inverse() * ri;
+  const Sophus::SO3d ri(Qi);
+  const Sophus::SO3d rp(Qp_);
+  const Sophus::SO3d res_r = rp.inverse() * ri;
   residual_.block<3, 1>(0, 0) = Sophus::SO3d::log(res_r);
 #else
   residual_.block<3, 1>(0, 0) = 2 * (Qp_.inverse() * Qi).vec();
 #endif
   // translation error
   residual_.block<3, 1>(3, 0) = Pi - Pp_;
-  //   LOG(INFO) << residual_.transpose() <<std::endl;
 }
 
 void EdgeSE3Prior::ComputeJacobians() {
-  VecX param_i = verticies_[0]->Parameters();
-  Qd Qi(param_i[6], param_i[3], param_i[4], param_i[5]);
+  const VecX& param_i = verticies_[0]->Parameters();
+  const Qd Qi(param_i[6], param_i[3], param_i[4], param_i[5]);
 
   // w.r.t. pose i
   Eigen::Matrix<double, 6, 6> jacobian_pose_i =
       Eigen::Matrix<double, 6, 6>::Zero();
 
 #ifdef USE_SO3_JACOBIAN
-  Sophus::SO3d ri(Qi);
-  Sophus::SO3d rp(Qp_);
-  Sophus::SO3d res_r = rp.inverse() * ri;
+  const Sophus::SO3d ri(Qi);
+  const Sophus::SO3d rp(Qp_);
+  const Sophus::SO3d res_r = rp.inverse() * ri;
   // http://rpg.ifi.uzh.ch/docs/RSS15_Forster.pdf  公式A.32
   jacobian_pose_i.block<3, 3>(0, 3) = Sophus::SO3d::JacobianRInv(res_r.log());
 #else

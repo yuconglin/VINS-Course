@@ -19,17 +19,14 @@ Edge::Edge(int residual_dimension, int num_verticies,
   //    verticies_.resize(num_verticies);      // TODO::
   //    这里可能会存在问题，比如这里resize了3个空,后续调用edge->addVertex.
   //    使得vertex前面会存在空元素
-  if (!verticies_types.empty()) verticies_types_ = verticies_types;
+  if (!verticies_types.empty()) {
+    verticies_types_ = verticies_types;
+  }
   jacobians_.resize(num_verticies);
   id_ = global_edge_id++;
 
-  Eigen::MatrixXd information(residual_dimension, residual_dimension);
-  information.setIdentity();
-  information_ = information;
-
-  lossfunction_ = NULL;
-  //    LOG(INFO)<<"Edge construct residual_dimension="<<residual_dimension
-  //            << ", num_verticies="<<num_verticies<<", id_="<<id_<<endl;
+  information_ =
+      Eigen::MatrixXd::Identity(residual_dimension, residual_dimension);
 }
 
 Edge::~Edge() {}
@@ -51,6 +48,7 @@ double Edge::RobustChi2() const {
   }
   return e2;
 }
+
 void Edge::RobustInfo(double &drho, MatXX &info) const {
   if (lossfunction_) {
     /// robust_info = rho[1] * information_ + information_ * r * r^T *
@@ -59,11 +57,12 @@ void Edge::RobustInfo(double &drho, MatXX &info) const {
     double e2 = this->Chi2();
     Eigen::Vector3d rho;
     lossfunction_->Compute(e2, rho);
-    VecX weight_err = information_ * residual_;
+    const VecX weight_err = information_ * residual_;
 
     MatXX robust_info(information_.rows(), information_.cols());
     robust_info.setIdentity();
     robust_info *= rho[1] * information_;
+
     if (rho[1] + 2 * rho[2] * e2 > 0.) {
       robust_info += 2 * rho[2] * weight_err * weight_err.transpose();
     }
@@ -88,17 +87,6 @@ bool Edge::CheckValid() {
       }
     }
   }
-  /*
-      CHECK_EQ(information_.rows(), information_.cols());
-      CHECK_EQ(residual_.rows(), information_.rows());
-      CHECK_EQ(residual_.rows(), observation_.rows());
-
-      // check jacobians
-      for (size_t i = 0; i < jacobians_.size(); ++i) {
-          CHECK_EQ(jacobians_[i].rows(), residual_.rows());
-          CHECK_EQ(jacobians_[i].cols(), verticies_[i]->LocalDimension());
-      }
-      */
   return true;
 }
 

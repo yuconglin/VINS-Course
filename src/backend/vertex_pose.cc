@@ -18,10 +18,6 @@ void VertexPose::Plus(const VecX &delta) {
   parameters[4] = q.y();
   parameters[5] = q.z();
   parameters[6] = q.w();
-  //    Qd test = Sophus::SO3d::exp(Vec3(0.2, 0.1, 0.1)).unit_quaternion() *
-  //    Sophus::SO3d::exp(-Vec3(0.2, 0.1, 0.1)).unit_quaternion();
-  //   LOG(INFO) << test.x()<<" "<< test.y()<<" "<<test.z()<<" "<<test.w()
-  //   <<std::endl;
 }
 
 }  // namespace backend
