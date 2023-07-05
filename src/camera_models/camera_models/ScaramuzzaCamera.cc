@@ -155,31 +155,31 @@ OCAMCamera::Parameters& OCAMCamera::Parameters::operator=(
 
 std::ostream& operator<<(std::ostream& out,
                          const OCAMCamera::Parameters& params) {
-  out << "Camera Parameters:" << std::endl;
+  out << "Camera Parameters:" ;
   out << "    model_type "
-      << "scaramuzza" << std::endl;
-  out << "   camera_name " << params.m_cameraName << std::endl;
-  out << "   image_width " << params.m_imageWidth << std::endl;
-  out << "  image_height " << params.m_imageHeight << std::endl;
+      << "scaramuzza" ;
+  out << "   camera_name " << params.m_cameraName ;
+  out << "   image_width " << params.m_imageWidth ;
+  out << "  image_height " << params.m_imageHeight ;
 
   out << std::fixed << std::setprecision(10);
 
-  out << "Poly Parameters" << std::endl;
+  out << "Poly Parameters" ;
   for (int i = 0; i < SCARAMUZZA_POLY_SIZE; i++)
     out << std::string("p") + boost::lexical_cast<std::string>(i) << ": "
-        << params.m_poly[i] << std::endl;
+        << params.m_poly[i] ;
 
-  out << "Inverse Poly Parameters" << std::endl;
+  out << "Inverse Poly Parameters" ;
   for (int i = 0; i < SCARAMUZZA_INV_POLY_SIZE; i++)
     out << std::string("p") + boost::lexical_cast<std::string>(i) << ": "
-        << params.m_inv_poly[i] << std::endl;
+        << params.m_inv_poly[i] ;
 
-  out << "Affine Parameters" << std::endl;
-  out << "            ac " << params.m_C << std::endl
-      << "            ad " << params.m_D << std::endl
-      << "            ae " << params.m_E << std::endl;
-  out << "            cx " << params.m_center_x << std::endl
-      << "            cy " << params.m_center_y << std::endl;
+  out << "Affine Parameters" ;
+  out << "            ac " << params.m_C 
+      << "            ad " << params.m_D 
+      << "            ae " << params.m_E ;
+  out << "            cx " << params.m_center_x 
+      << "            cy " << params.m_center_y ;
 
   return out;
 }
@@ -308,7 +308,7 @@ void OCAMCamera::estimateIntrinsics(
 
     // LOG(INFO) << "h= " << std::setprecision(12) << h.transpose() <<
     // std::endl; LOG(INFO) << "length: " << sr32_values.size() << " & " <<
-    // sr31_values.size() << std::endl;
+    // sr31_values.size() ;
 
     assert(!sr31_values.empty());
     assert(sr31_values.size() == sr32_values.size());
@@ -335,12 +335,12 @@ void OCAMCamera::estimateIntrinsics(
     }
 
     for (auto& H : H_values) {
-      // LOG(INFO) << "H=\n" << H << std::endl;
+      // LOG(INFO) << "H=\n" << H ;
       Eigen::Matrix3d R;
       R.col(0) = H.col(0);
       R.col(1) = H.col(1);
       R.col(2) = H.col(0).cross(H.col(1));
-      // LOG(INFO) << "R33 = " << R(2,2) << std::endl;
+      // LOG(INFO) << "R33 = " << R(2,2) ;
     }
 
     std::vector<Eigen::Matrix3d> H_candidates;
@@ -405,7 +405,7 @@ void OCAMCamera::estimateIntrinsics(
 
         Eigen::VectorXd x = svd.solve(B_vec);
 
-        // LOG(INFO) << "x(poly and t3) = " << x << std::endl;
+        // LOG(INFO) << "x(poly and t3) = " << x ;
 
         if (x(2) > 0 && x(3) > 0) {
           H_candidates.push_back(H);
@@ -428,7 +428,7 @@ void OCAMCamera::estimateIntrinsics(
     TList.push_back(T);
 
     // LOG(INFO) << "#" << image_index << " frame" << " R =" << R << " \nT = "
-    // << T.transpose() << std::endl;
+    // << T.transpose() ;
   }
 
   // Second, estimate camera intrinsic parameters and all t3
@@ -568,7 +568,7 @@ void OCAMCamera::estimateIntrinsics(
 
   setParameters(params);
 
-  LOG(INFO) << "initial params:\n" << params << std::endl;
+  LOG(INFO) << "initial params:\n" << params ;
 }
 
 /**

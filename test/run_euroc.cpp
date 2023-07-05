@@ -25,8 +25,6 @@ string sData_path;
 string sConfig_path;
 
 // ./bin/run_euroc
-// --data_path=/home/yuconglin/slam_dataset/EuRoc/MH_05_difficult/mav0/
-// ./bin/run_euroc
 // --data_path=/home/yuconglin/slam_data/vins_data/MH_05_difficult/mav0/
 
 std::shared_ptr<System> pSystem;

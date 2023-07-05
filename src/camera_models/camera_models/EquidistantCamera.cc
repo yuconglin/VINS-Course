@@ -148,23 +148,23 @@ EquidistantCamera::Parameters& EquidistantCamera::Parameters::operator=(
 
 std::ostream& operator<<(std::ostream& out,
                          const EquidistantCamera::Parameters& params) {
-  out << "Camera Parameters:" << std::endl;
+  out << "Camera Parameters:" ;
   out << "    model_type "
-      << "KANNALA_BRANDT" << std::endl;
-  out << "   camera_name " << params.m_cameraName << std::endl;
-  out << "   image_width " << params.m_imageWidth << std::endl;
-  out << "  image_height " << params.m_imageHeight << std::endl;
+      << "KANNALA_BRANDT" ;
+  out << "   camera_name " << params.m_cameraName ;
+  out << "   image_width " << params.m_imageWidth ;
+  out << "  image_height " << params.m_imageHeight ;
 
   // projection: k2, k3, k4, k5, mu, mv, u0, v0
-  out << "Projection Parameters" << std::endl;
-  out << "            k2 " << params.m_k2 << std::endl
-      << "            k3 " << params.m_k3 << std::endl
-      << "            k4 " << params.m_k4 << std::endl
-      << "            k5 " << params.m_k5 << std::endl
-      << "            mu " << params.m_mu << std::endl
-      << "            mv " << params.m_mv << std::endl
-      << "            u0 " << params.m_u0 << std::endl
-      << "            v0 " << params.m_v0 << std::endl;
+  out << "Projection Parameters" ;
+  out << "            k2 " << params.m_k2 
+      << "            k3 " << params.m_k3 
+      << "            k4 " << params.m_k4 
+      << "            k5 " << params.m_k5 
+      << "            mu " << params.m_mu 
+      << "            mv " << params.m_mv 
+      << "            u0 " << params.m_u0 
+      << "            v0 " << params.m_v0 ;
 
   return out;
 }
@@ -291,7 +291,7 @@ void EquidistantCamera::estimateIntrinsics(
   if (f0 <= 0.0 && minReprojErr >= std::numeric_limits<double>::max()) {
     LOG(INFO) << "[" << params.cameraName() << "] "
               << "# INFO: kannala-Brandt model fails with given data. "
-              << std::endl;
+              ;
 
     return;
   }

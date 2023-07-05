@@ -894,7 +894,6 @@ void Estimator::MargNewFrame() {
 
 void Estimator::problemSolve() {
   backend::LossFunction *lossfunction = new backend::CauchyLoss(1.0);
-  //    lossfunction = new backend::TukeyLoss(1.0);
 
   // step1. 构建 problem
   backend::Problem problem(backend::Problem::ProblemType::SLAM_PROBLEM);
@@ -1051,12 +1050,12 @@ void Estimator::problemSolve() {
   // update bprior_,  Hprior_ do not need update
   if (Hprior_.rows() > 0) {
     LOG(INFO) << "----------- update bprior -------------\n";
-    LOG(INFO) << "             before: " << bprior_.norm() << std::endl;
-    LOG(INFO) << "                     " << errprior_.norm() << std::endl;
+    LOG(INFO) << "             before: " << bprior_.norm();
+    LOG(INFO) << "                     " << errprior_.norm();
     bprior_ = problem.GetbPrior();
     errprior_ = problem.GetErrPrior();
-    LOG(INFO) << "             after: " << bprior_.norm() << std::endl;
-    LOG(INFO) << "                    " << errprior_.norm() << std::endl;
+    LOG(INFO) << "             after: " << bprior_.norm();
+    LOG(INFO) << "                    " << errprior_.norm();
   }
 
   // update parameter
@@ -1091,12 +1090,10 @@ void Estimator::backendOptimization() {
   problemSolve();
   // 优化后的变量处理下自由度
   double2vector();
-  // ROS_INFO("whole time for solver: %f", t_solver.toc());
-  LOG(INFO) << "whole time for solver: " << t_solver.toc() << " ms\n";
+  LOG(INFO) << "whole time for solver: " << t_solver.toc() << " ms.";
 
   // 维护 marg
   TicToc t_whole_marginalization;
-
   // Marginalize the oldest frame.
   if (marginalization_flag == MARGIN_OLD) {
     vector2double();
@@ -1109,6 +1106,8 @@ void Estimator::backendOptimization() {
       MargNewFrame();
     }
   }
+  LOG(INFO) << "whole time for marginalization: "
+            << t_whole_marginalization.toc() << " ms.";
 }
 
 // Shift elements and remove marginalized frames.

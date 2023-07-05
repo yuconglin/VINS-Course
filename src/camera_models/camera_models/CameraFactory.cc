@@ -95,7 +95,7 @@ CameraPtr CameraFactory::generateCameraFromYamlFile(
       modelType = Camera::PINHOLE;
     } else {
       LOG(ERROR) << "# ERROR: Unknown camera model: " << sModelType
-                 << std::endl;
+                 ;
       return CameraPtr();
     }
   }

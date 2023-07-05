@@ -111,8 +111,8 @@ bool PinholeCamera::Parameters::readFromYamlFile(const std::string& filename) {
             << "\n  m_k2: " << m_k2 << "\n  m_p1: " << m_p1
             << "\n  m_p2: " << m_p2 << "\n  m_fx: " << m_fx
             << "\n  m_fy: " << m_fy << "\n  m_cx: " << m_cx
-            << "\n  m_cy: " << m_cy << std::endl
-            << std::endl;
+            << "\n  m_cy: " << m_cy 
+            ;
   return true;
 }
 
@@ -162,27 +162,27 @@ PinholeCamera::Parameters& PinholeCamera::Parameters::operator=(
 
 std::ostream& operator<<(std::ostream& out,
                          const PinholeCamera::Parameters& params) {
-  out << "Camera Parameters:" << std::endl;
+  out << "Camera Parameters:" ;
   out << "    model_type "
-      << "PINHOLE" << std::endl;
-  out << "   camera_name " << params.m_cameraName << std::endl;
-  out << "   image_width " << params.m_imageWidth << std::endl;
-  out << "  image_height " << params.m_imageHeight << std::endl;
+      << "PINHOLE" ;
+  out << "   camera_name " << params.m_cameraName ;
+  out << "   image_width " << params.m_imageWidth ;
+  out << "  image_height " << params.m_imageHeight ;
 
   // radial distortion: k1, k2
   // tangential distortion: p1, p2
-  out << "Distortion Parameters" << std::endl;
-  out << "            k1 " << params.m_k1 << std::endl
-      << "            k2 " << params.m_k2 << std::endl
-      << "            p1 " << params.m_p1 << std::endl
-      << "            p2 " << params.m_p2 << std::endl;
+  out << "Distortion Parameters" ;
+  out << "            k1 " << params.m_k1 
+      << "            k2 " << params.m_k2 
+      << "            p1 " << params.m_p1 
+      << "            p2 " << params.m_p2 ;
 
   // projection: fx, fy, cx, cy
-  out << "Projection Parameters" << std::endl;
-  out << "            fx " << params.m_fx << std::endl
-      << "            fy " << params.m_fy << std::endl
-      << "            cx " << params.m_cx << std::endl
-      << "            cy " << params.m_cy << std::endl;
+  out << "Projection Parameters" ;
+  out << "            fx " << params.m_fx 
+      << "            fy " << params.m_fy 
+      << "            cx " << params.m_cx 
+      << "            cy " << params.m_cy ;
 
   return out;
 }

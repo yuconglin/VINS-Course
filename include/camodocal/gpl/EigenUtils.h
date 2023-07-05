@@ -128,7 +128,7 @@ void AngleAxisAndTranslationToScrew(const Eigen::Matrix<T, 3, 1>& rvec,
   if (theta == 0) {
     l.setZero();
     m.setZero();
-    LOG(INFO) << "Warning: Undefined screw! Returned 0. " << std::endl;
+    LOG(INFO) << "Warning: Undefined screw! Returned 0. " ;
   }
 
   l = rvec.normalized();

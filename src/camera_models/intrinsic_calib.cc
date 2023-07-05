@@ -51,13 +51,13 @@ int main(int argc, char** argv)
 
     if (vm.count("help"))
     {
-       LOG(INFO) << desc << std::endl;
+       LOG(INFO) << desc ;
         return 1;
     }
 
     if (!boost::filesystem::exists(inputDir) && !boost::filesystem::is_directory(inputDir))
     {
-       LOG(ERROR) << "# ERROR: Cannot find input directory " << inputDir << "." << std::endl;
+       LOG(ERROR) << "# ERROR: Cannot find input directory " << inputDir << "." ;
         return 1;
     }
 
@@ -80,23 +80,23 @@ int main(int argc, char** argv)
     }
     else
     {
-       LOG(ERROR) << "# ERROR: Unknown camera model: " << cameraModel << std::endl;
+       LOG(ERROR) << "# ERROR: Unknown camera model: " << cameraModel ;
         return 1;
     }
 
     switch (modelType)
     {
     case camodocal::Camera::KANNALA_BRANDT:
-       LOG(INFO) << "# INFO: Camera model: Kannala-Brandt" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Kannala-Brandt" ;
         break;
     case camodocal::Camera::MEI:
-       LOG(INFO) << "# INFO: Camera model: Mei" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Mei" ;
         break;
     case camodocal::Camera::PINHOLE:
-       LOG(INFO) << "# INFO: Camera model: Pinhole" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Pinhole" ;
         break;
     case camodocal::Camera::SCARAMUZZA:
-       LOG(INFO) << "# INFO: Camera model: Scaramuzza-Omnidirect" << std::endl;
+       LOG(INFO) << "# INFO: Camera model: Scaramuzza-Omnidirect" ;
         break;
     }
 
@@ -131,19 +131,19 @@ int main(int argc, char** argv)
 
         if (verbose)
         {
-           LOG(ERROR) << "# INFO: Adding " << imageFilenames.back() << std::endl;
+           LOG(ERROR) << "# INFO: Adding " << imageFilenames.back() ;
         }
     }
 
     if (imageFilenames.empty())
     {
-       LOG(ERROR) << "# ERROR: No chessboard images found." << std::endl;
+       LOG(ERROR) << "# ERROR: No chessboard images found." ;
         return 1;
     }
 
     if (verbose)
     {
-       LOG(ERROR) << "# INFO: # images: " << imageFilenames.size() << std::endl;
+       LOG(ERROR) << "# INFO: # images: " << imageFilenames.size() ;
     }
 
     std::sort(imageFilenames.begin(), imageFilenames.end());
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
         {
             if (verbose)
             {
-               LOG(ERROR) << "# INFO: Detected chessboard in image " << i + 1 << ", " << imageFilenames.at(i) << std::endl;
+               LOG(ERROR) << "# INFO: Detected chessboard in image " << i + 1 << ", " << imageFilenames.at(i) ;
             }
 
             calibration.addChessboardData(chessboard.getCorners());
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
         }
         else if (verbose)
         {
-           LOG(ERROR) << "# INFO: Did not detect chessboard in image " << i + 1 << std::endl;
+           LOG(ERROR) << "# INFO: Did not detect chessboard in image " << i + 1 ;
         }
         chessboardFound.at(i) = chessboard.cornersFound();
     }
@@ -187,13 +187,13 @@ int main(int argc, char** argv)
 
     if (calibration.sampleCount() < 10)
     {
-       LOG(ERROR) << "# ERROR: Insufficient number of detected chessboards." << std::endl;
+       LOG(ERROR) << "# ERROR: Insufficient number of detected chessboards." ;
         return 1;
     }
 
     if (verbose)
     {
-       LOG(ERROR) << "# INFO: Calibrating..." << std::endl;
+       LOG(ERROR) << "# INFO: Calibrating..." ;
     }
 
     double startTime = camodocal::timeInSeconds();
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
 
     if (verbose)
     {
-       LOG(ERROR) << "# INFO: Wrote calibration file to " << cameraName + "_camera_calib.yaml" << std::endl;
+       LOG(ERROR) << "# INFO: Wrote calibration file to " << cameraName + "_camera_calib.yaml" ;
     }
 
     if (viewResults)

@@ -37,7 +37,7 @@ void readParameters(ros::NodeHandle &n) {
   config_file = readParam<std::string>(n, "config_file");
   cv::FileStorage fsSettings(config_file, cv::FileStorage::READ);
   if (!fsSettings.isOpened()) {
-    LOG(ERROR) << "ERROR: Wrong path to settings" << std::endl;
+    LOG(ERROR) << "ERROR: Wrong path to settings" ;
   }
   std::string VINS_FOLDER_PATH = readParam<std::string>(n, "vins_folder");
 

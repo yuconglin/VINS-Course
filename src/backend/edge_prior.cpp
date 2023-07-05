@@ -82,7 +82,7 @@ void EdgeSE3Prior::ComputeJacobians() {
   jacobian_pose_i.block<3, 3>(3, 0) = Mat33::Identity();
 
   jacobians_[0] = jacobian_pose_i;
-  //   LOG(INFO) << jacobian_pose_i << std::endl;
+  //   LOG(INFO) << jacobian_pose_i ;
 }
 
 }  // namespace backend

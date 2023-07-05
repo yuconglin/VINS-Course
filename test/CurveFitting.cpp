@@ -85,15 +85,15 @@ int main() {
     problem.AddEdge(edge);
   }
 
-  LOG(INFO) << "\nTest CurveFitting start..." << std::endl;
+  LOG(INFO) << "\nTest CurveFitting start..." ;
   /// 使用 LM 求解
   problem.Solve(30);
 
   LOG(INFO) << "-------After optimization, we got these parameters :"
-            << std::endl;
-  LOG(INFO) << vertex->Parameters().transpose() << std::endl;
-  LOG(INFO) << "-------ground truth: " << std::endl;
-  LOG(INFO) << "1.0,  2.0,  1.0" << std::endl;
+            ;
+  LOG(INFO) << vertex->Parameters().transpose() ;
+  LOG(INFO) << "-------ground truth: " ;
+  LOG(INFO) << "1.0,  2.0,  1.0" ;
 
   // std
   return 0;

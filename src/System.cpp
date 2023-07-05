@@ -329,11 +329,12 @@ void System::ProcessBackEnd() {
         const Vector3d p_wi = estimator.Ps[WINDOW_SIZE];
         vPath_to_draw.push_back(p_wi);
         const double dStamp = estimator.Headers[WINDOW_SIZE];
-        LOG(INFO) << "1 BackEnd processImage dt: " << fixed
-                  << t_processImage.toc() << " stamp: " << dStamp
-                  << " p_wi: " << p_wi.transpose() << endl;
-        ofs_pose << fixed << dStamp << " " << p_wi(0) << " " << p_wi(1) << " "
-                 << p_wi(2) << " " << q_wi.w() << " " << q_wi.x() << " "
+        LOG(INFO) << "1 BackEnd processImage dt: " << std::fixed
+                  << t_processImage.toc() << "ms. "
+                  << "timestamp: " << dStamp << " p_wi: " << p_wi.transpose()
+                  << endl;
+        ofs_pose << std::fixed << dStamp << " " << p_wi(0) << " " << p_wi(1)
+                 << " " << p_wi(2) << " " << q_wi.w() << " " << q_wi.x() << " "
                  << q_wi.y() << " " << q_wi.z() << endl;
       }
     }

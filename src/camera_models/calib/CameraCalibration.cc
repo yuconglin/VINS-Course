@@ -439,7 +439,7 @@ namespace camodocal
                       << "Initial reprojection error: "
                       << std::fixed << std::setprecision(3)
                       << camera->reprojectionError(m_scenePoints, m_imagePoints, rvecs, tvecs)
-                      << " pixels" << std::endl;
+                      << " pixels" ;
         }
 
         // STEP 3: optimization using ceres
@@ -450,10 +450,10 @@ namespace camodocal
             double err = camera->reprojectionError(m_scenePoints, m_imagePoints, rvecs, tvecs);
            LOG(INFO) << "[" << camera->cameraName() << "] "
                       << "# INFO: Final reprojection error: "
-                      << err << " pixels" << std::endl;
+                      << err << " pixels" ;
            LOG(INFO) << "[" << camera->cameraName() << "] "
                       << "# INFO: "
-                      << camera->parametersToString() << std::endl;
+                      << camera->parametersToString() ;
         }
 
         return true;
@@ -509,7 +509,7 @@ namespace camodocal
                                         quaternionParameterization);
         }
 
-       LOG(INFO) << "begin ceres" << std::endl;
+       LOG(INFO) << "begin ceres" ;
         ceres::Solver::Options options;
         options.max_num_iterations = 1000;
         options.num_threads = 1;
@@ -521,11 +521,11 @@ namespace camodocal
 
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
-       LOG(INFO) << "end ceres" << std::endl;
+       LOG(INFO) << "end ceres" ;
 
         if (m_verbose)
         {
-           LOG(INFO) << summary.FullReport() << std::endl;
+           LOG(INFO) << summary.FullReport() ;
         }
 
         camera->readParameters(intrinsicCameraParams);
