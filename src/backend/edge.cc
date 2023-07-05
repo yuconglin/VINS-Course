@@ -82,7 +82,7 @@ bool Edge::CheckValid() {
       if (verticies_types_[i] != verticies_[i]->TypeInfo()) {
         LOG(INFO) << "Vertex type does not match, should be "
                   << verticies_types_[i] << ", but set to "
-                  << verticies_[i]->TypeInfo() << endl;
+                  << verticies_[i]->TypeInfo() ;
         return false;
       }
     }

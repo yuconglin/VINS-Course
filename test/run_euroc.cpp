@@ -103,7 +103,7 @@ void PubImageData() {
 
     Mat img = imread(imagePath.c_str(), 0);
     if (img.empty()) {
-      LOG(ERROR) << "image is empty! Path: " << imagePath << endl;
+      LOG(ERROR) << "image is empty! Path: " << imagePath;
       return;
     }
 
@@ -119,12 +119,12 @@ void PubImageData() {
 void DrawIMGandGLinMainThrd() {
   string sImage_file = sConfig_path + "MH_05_cam0.txt";
 
-  LOG(INFO) << "1 PubImageData start sImage_file: " << sImage_file << endl;
+  LOG(INFO) << "1 PubImageData start sImage_file: " << sImage_file;
 
   ifstream fsImage;
   fsImage.open(sImage_file.c_str());
   if (!fsImage.is_open()) {
-    LOG(ERROR) << "Failed to open image file! " << sImage_file << endl;
+    LOG(ERROR) << "Failed to open image file! " << sImage_file;
     return;
   }
 
@@ -138,12 +138,12 @@ void DrawIMGandGLinMainThrd() {
     ssImuData >> dStampNSec >> sImgFileName;
     // LOG(INFO) << "Image t : " << fixed << dStampNSec << " Name: " <<
     // sImgFileName
-    // << endl;
+    // ;
     string imagePath = sData_path + "cam0/data/" + sImgFileName;
 
     Mat img = imread(imagePath.c_str(), 0);
     if (img.empty()) {
-      LOG(ERROR) << "image is empty! path: " << imagePath << endl;
+      LOG(ERROR) << "image is empty! path: " << imagePath;
       return;
     }
     // pSystem->PubImageData(dStampNSec / 1e9, img);
@@ -201,11 +201,11 @@ int main(int argc, char** argv) {
   thd_PubImuData.join();
   thd_PubImageData.join();
 
-  // thd_BackEnd.join();
+  thd_BackEnd.join();
 #ifdef __linux__
   thd_Draw.join();
 #endif
 
-  LOG(INFO) << "main end... see you ..." << endl;
+  LOG(INFO) << "main end... see you ...";
   return 0;
 }

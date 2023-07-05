@@ -303,144 +303,144 @@ class IntegrationBase
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb p       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 0) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 0) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 0) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 0) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff " << (step_jacobian.block<3, 3>(12, 0) * turb).transpose() << endl;
+        LOG(INFO) << "turb p       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 0) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 0) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 0) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 0) * turb).transpose() ;
+        LOG(INFO) << "bg diff " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff " << (step_jacobian.block<3, 3>(12, 0) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0, _acc_1, _gyr_1, delta_p, delta_q * Quaterniond(1, turb(0) / 2, turb(1) / 2, turb(2) / 2), delta_v,
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb q       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 3) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 3) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 3) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 3) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 3) * turb).transpose() << endl;
+        LOG(INFO) << "turb q       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 3) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 3) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 3) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 3) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 3) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0, _acc_1, _gyr_1, delta_p, delta_q, delta_v + turb,
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb v       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 6) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 6) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 6) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 6) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 6) * turb).transpose() << endl;
+        LOG(INFO) << "turb v       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 6) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 6) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 6) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 6) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 6) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0, _acc_1, _gyr_1, delta_p, delta_q, delta_v,
                             linearized_ba + turb, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb ba       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 9) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 9) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 9) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 9) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 9) * turb).transpose() << endl;
+        LOG(INFO) << "turb ba       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 9) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 9) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 9) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 9) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 9) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0, _acc_1, _gyr_1, delta_p, delta_q, delta_v,
                             linearized_ba, linearized_bg + turb,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb bg       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 12) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 12) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 12) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 12) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 12) * turb).transpose() << endl;
+        LOG(INFO) << "turb bg       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_jacobian.block<3, 3>(0, 12) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_jacobian.block<3, 3>(3, 12) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_jacobian.block<3, 3>(6, 12) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_jacobian.block<3, 3>(9, 12) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_jacobian.block<3, 3>(12, 12) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0 + turb, _gyr_0, _acc_1 , _gyr_1, delta_p, delta_q, delta_v,
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb acc_0       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 0) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 0) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 0) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 0) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 0) * turb).transpose() << endl;
+        LOG(INFO) << "turb acc_0       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 0) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 0) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 0) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 0) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 0) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0 + turb, _acc_1 , _gyr_1, delta_p, delta_q, delta_v,
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb _gyr_0       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 3) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 3) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 3) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 3) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 3) * turb).transpose() << endl;
+        LOG(INFO) << "turb _gyr_0       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 3) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 3) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 3) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 3) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 3) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0, _acc_1 + turb, _gyr_1, delta_p, delta_q, delta_v,
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb acc_1       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 6) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 6) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 6) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 6) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 6) * turb).transpose() << endl;
+        LOG(INFO) << "turb acc_1       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 6) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 6) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 6) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 6) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 6) * turb).transpose() ;
 
         midPointIntegration(_dt, _acc_0, _gyr_0, _acc_1 , _gyr_1 + turb, delta_p, delta_q, delta_v,
                             linearized_ba, linearized_bg,
                             turb_delta_p, turb_delta_q, turb_delta_v,
                             turb_linearized_ba, turb_linearized_bg, 0);
-        LOG(INFO) << "turb _gyr_1       " << endl;
-        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() << endl;
-        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 9) * turb).transpose() << endl;
-        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << endl;
-        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 9) * turb).transpose() << endl;
-        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() << endl;
-        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 9) * turb).transpose() << endl;
-        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() << endl;
-        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 9) * turb).transpose() << endl;
-        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << endl;
-        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 9) * turb).transpose() << endl;
+        LOG(INFO) << "turb _gyr_1       " ;
+        LOG(INFO) << "p diff       " << (turb_delta_p - result_delta_p).transpose() ;
+        LOG(INFO) << "p jacob diff " << (step_V.block<3, 3>(0, 9) * turb).transpose() ;
+        LOG(INFO) << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() ;
+        LOG(INFO) << "q jacob diff " << (step_V.block<3, 3>(3, 9) * turb).transpose() ;
+        LOG(INFO) << "v diff       " << (turb_delta_v - result_delta_v).transpose() ;
+        LOG(INFO) << "v jacob diff " << (step_V.block<3, 3>(6, 9) * turb).transpose() ;
+        LOG(INFO) << "ba diff      " << (turb_linearized_ba - result_linearized_ba).transpose() ;
+        LOG(INFO) << "ba jacob diff" << (step_V.block<3, 3>(9, 9) * turb).transpose() ;
+        LOG(INFO) << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() ;
+        LOG(INFO) << "bg jacob diff" << (step_V.block<3, 3>(12, 9) * turb).transpose() ;
     }
     */

@@ -55,11 +55,11 @@ void readParameters(string config_file) {
   // cv::FileStorage fsSettings(config_file, cv::FileStorage::READ);
   // if (!fsSettings.isOpened())
   // {
-  //     LOG(ERROR) << "ERROR: Wrong path to settings" << endl;
+  //     LOG(ERROR) << "ERROR: Wrong path to settings" ;
   // }
   cv::FileStorage fsSettings(config_file, cv::FileStorage::READ);
   if (!fsSettings.isOpened()) {
-    LOG(ERROR) << "1 readParameters ERROR: Wrong path to settings!" << endl;
+    LOG(ERROR) << "1 readParameters ERROR: Wrong path to settings!" ;
     return;
   }
 
@@ -74,7 +74,7 @@ void readParameters(string config_file) {
   string OUTPUT_PATH;
   fsSettings["output_path"] >> OUTPUT_PATH;
   VINS_RESULT_PATH = OUTPUT_PATH + "/vins_result_no_loop.txt";
-  // LOG(INFO) << "result path " << VINS_RESULT_PATH << endl;
+  // LOG(INFO) << "result path " << VINS_RESULT_PATH ;
   // ofstream fout(VINS_RESULT_PATH, ios::out);
   // fout.close();
 
@@ -100,7 +100,7 @@ void readParameters(string config_file) {
       EX_CALIB_RESULT_PATH = OUTPUT_PATH + "/extrinsic_parameter.csv";
     }
     if (ESTIMATE_EXTRINSIC == 0) {
-      LOG(INFO) << " fix extrinsic param " << endl;
+      LOG(INFO) << " fix extrinsic param " ;
     }
     cv::Mat cv_R, cv_T;
     fsSettings["extrinsicRotation"] >> cv_R;
@@ -113,9 +113,9 @@ void readParameters(string config_file) {
     eigen_R = Q.normalized();
     RIC.push_back(eigen_R);
     TIC.push_back(eigen_T);
-    // ROS_INFO_STREAM("Extrinsic_R : " << endl
+    // ROS_INFO_STREAM("Extrinsic_R : " 
     //                                  << RIC[0]);
-    // ROS_INFO_STREAM("Extrinsic_T : " << endl
+    // ROS_INFO_STREAM("Extrinsic_T : " 
     //                                  << TIC[0].transpose());
   }
 
@@ -191,5 +191,5 @@ void readParameters(string config_file) {
             << "\n  SHOW_TRACK:" << SHOW_TRACK
             << "\n  STEREO_TRACK:" << STEREO_TRACK
             << "\n  EQUALIZE:" << EQUALIZE << "\n  FISHEYE:" << FISHEYE
-            << "\n  PUB_THIS_FRAME:" << PUB_THIS_FRAME << endl;
+            << "\n  PUB_THIS_FRAME:" << PUB_THIS_FRAME ;
 }

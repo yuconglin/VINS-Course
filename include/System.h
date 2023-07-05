@@ -62,6 +62,9 @@ class System {
 #endif
 
  private:
+  std::vector<std::pair<std::vector<ImuConstPtr>, ImgConstPtr>>
+  getMeasurements();
+
   // feature tracker
   std::vector<uchar> r_status;
   std::vector<float> r_err;
@@ -101,7 +104,7 @@ class System {
   std::ofstream ofs_pose;
   std::vector<Eigen::Vector3d> vPath_to_draw;
   bool bStart_backend;
-  std::vector<std::pair<std::vector<ImuConstPtr>, ImgConstPtr>>
 
-  getMeasurements();
+  double total_image_proc_time_ = 0.0;
+  int proc_count_ = 0;
 };

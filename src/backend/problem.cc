@@ -76,6 +76,7 @@ void Problem::ResizePoseHessiansWhenAddingPose(shared_ptr<Vertex> v) {
   H_prior_.rightCols(v->LocalDimension()).setZero();
   H_prior_.bottomRows(v->LocalDimension()).setZero();
 }
+
 void Problem::ExtendHessiansPriorSize(int dim) {
   const int size = H_prior_.rows() + dim;
   H_prior_.conservativeResize(size, size);
@@ -116,7 +117,9 @@ vector<shared_ptr<Edge>> Problem::GetConnectedEdges(
   const auto range = vertexToEdge_.equal_range(vertex->Id());
   for (auto iter = range.first; iter != range.second; ++iter) {
     // 并且这个edge还需要存在，而不是已经被remove了
-    if (edges_.find(iter->second->Id()) == edges_.end()) continue;
+    if (edges_.find(iter->second->Id()) == edges_.end()) {
+      continue;
+    }
 
     edges.emplace_back(iter->second);
   }
@@ -201,13 +204,14 @@ bool Problem::Solve(int iterations) {
     // 不断尝试 Lambda, 直到成功迭代一步
     while (!oneStepSuccess && false_cnt < 10) {
       // setLambda
-      //            AddLambdatoHessianLM();
+      // AddLambdatoHessianLM();
       // 第四步，解线性方程
       TicToc t_solve_ls;
+      // SolveLinearSystemSimple();
       SolveLinearSystem();
       time_solve_ls += t_solve_ls.toc();
-      //
-      //            RemoveLambdaHessianLM();
+
+      // RemoveLambdaHessianLM();
 
       // 优化退出条件1： delta_x_ 很小则退出
       //            if (delta_x_.squaredNorm() <= 1e-6 || false_cnt > 10)
@@ -231,8 +235,6 @@ bool Problem::Solve(int iterations) {
 
       // 后续处理，
       if (oneStepSuccess) {
-        //               LOG(INFO) << " get one step success\n";
-
         // 在新线性化点 构建 hessian
         MakeHessian();
         // TODO:: 这个判断条件可以丢掉，条件 b_max <= 1e-12
@@ -292,14 +294,13 @@ void Problem::SetOrdering() {
   ordering_landmarks_ = 0;
 
   // Note:: verticies_ 是 map 类型的, 顺序是按照 id 号排序的
-  for (auto vertex : verticies_) {
-    ordering_generic_ +=
-        vertex.second->LocalDimension();  // 所有的优化变量总维数
+  for (const auto &vertex : verticies_) {
+    // 所有的优化变量总维数
+    ordering_generic_ += vertex.second->LocalDimension();
 
-    if (problemType_ ==
-        ProblemType::SLAM_PROBLEM)  // 如果是 slam 问题，还要分别统计 pose 和
-                                    // landmark 的维数，后面会对他们进行排序
-    {
+    // 如果是 slam 问题，还要分别统计 pose 和 landmark
+    // 的维数，后面会对他们进行排序
+    if (problemType_ == ProblemType::SLAM_PROBLEM) {
       AddOrderingSLAM(vertex.second);
     }
   }
@@ -307,25 +308,23 @@ void Problem::SetOrdering() {
   if (problemType_ == ProblemType::SLAM_PROBLEM) {
     // 这里要把 landmark 的 ordering 加上 pose 的数量，就保持了 landmark 在后,而
     // pose 在前
-    ulong all_pose_dimension = ordering_poses_;
-    for (auto landmarkVertex : idx_landmark_vertices_) {
+    const ulong all_pose_dimension = ordering_poses_;
+    for (auto &landmarkVertex : idx_landmark_vertices_) {
       landmarkVertex.second->SetOrderingId(landmarkVertex.second->OrderingId() +
                                            all_pose_dimension);
     }
   }
-
-  //    CHECK_EQ(CheckOrdering(), true);
 }
 
 bool Problem::CheckOrdering() {
   if (problemType_ == ProblemType::SLAM_PROBLEM) {
     int current_ordering = 0;
-    for (auto v : idx_pose_vertices_) {
+    for (const auto &v : idx_pose_vertices_) {
       assert(v.second->OrderingId() == current_ordering);
       current_ordering += v.second->LocalDimension();
     }
 
-    for (auto v : idx_landmark_vertices_) {
+    for (const auto &v : idx_landmark_vertices_) {
       assert(v.second->OrderingId() == current_ordering);
       current_ordering += v.second->LocalDimension();
     }
@@ -436,8 +435,8 @@ void Problem::MakeHessian() {
     MatXX H_prior_tmp = H_prior_;
     VecX b_prior_tmp = b_prior_;
 
-    /// 遍历所有 POSE 顶点，然后设置相应的先验维度为 0 .  fix 外参数, SET
-    /// PRIOR TO ZERO landmark 没有先验
+    /// 遍历所有 POSE 顶点，然后设置相应的先验维度为 0 .  fix
+    /// 外参数, SET PRIOR TO ZERO landmark 没有先验
     for (auto vertex : verticies_) {
       if (IsPoseVertex(vertex.second) && vertex.second->IsFixed()) {
         const int idx = vertex.second->OrderingId();
@@ -458,6 +457,20 @@ void Problem::MakeHessian() {
 /*
  * Solve Hx = b, we can use PCG iterative method or use sparse Cholesky
  */
+void Problem::SolveLinearSystemSimple() {
+  TicToc t_solve_other;
+  MatXX H = Hessian_;
+  for (size_t i = 0; i < Hessian_.cols(); ++i) {
+    H(i, i) += currentLambda_;
+  }
+  t_other_solve_cost_ += t_solve_other.toc();
+
+  // delta_x_ = PCGSolver(H, b_, H.rows() * 2);
+  TicToc t_linearsolver;
+  delta_x_ = H.ldlt().solve(b_);
+  t_solver_cost_ += t_linearsolver.toc();
+}
+
 void Problem::SolveLinearSystem() {
   if (problemType_ == ProblemType::GENERIC_PROBLEM) {
     TicToc t_solve_other;
@@ -489,7 +502,6 @@ void Problem::SolveLinearSystem() {
     // Hmm
     // 是对角线矩阵，它的求逆可以直接为对角线块分别求逆，如果是逆深度，对角线块为1维的，则直接为对角线的倒数，这里可以加速
     MatXX Hmm_inv = MatXX::Zero(marg_size, marg_size);
-
     for_each(std::execution::par_unseq, idx_landmark_vertices_.begin(),
              idx_landmark_vertices_.end(),
              [&Hmm_inv, &Hmm, reserve_size](const auto &landmarkVertex) {
@@ -528,7 +540,7 @@ void Problem::SolveLinearSystem() {
 
 void Problem::UpdateStates() {
   // update vertex
-  for (auto vertex : verticies_) {
+  for (auto &vertex : verticies_) {
     vertex.second->BackUpParameters();  // 保存上次的估计值
 
     const ulong idx = vertex.second->OrderingId();
@@ -554,7 +566,7 @@ void Problem::UpdateStates() {
 
 void Problem::RollbackStates() {
   // update vertex
-  for (auto vertex : verticies_) {
+  for (auto &vertex : verticies_) {
     vertex.second->RollBackParameters();
   }
 
@@ -571,12 +583,11 @@ void Problem::ComputeLambdaInitLM() {
   currentLambda_ = -1.;
   currentChi_ = 0.0;
 
-  for (auto edge : edges_) {
+  for (const auto &edge : edges_) {
     currentChi_ += edge.second->RobustChi2();
   }
   if (err_prior_.rows() > 0) currentChi_ += err_prior_.squaredNorm();
   currentChi_ *= 0.5;
-
   stopThresholdLM_ = 1e-10 * currentChi_;  // 迭代条件为 误差下降 1e-6 倍
 
   double maxDiagonal = 0;
@@ -620,7 +631,7 @@ bool Problem::IsGoodStepInLM() {
 
   // recompute residuals after update state
   double tempChi = 0.0;
-  for (auto edge : edges_) {
+  for (auto &edge : edges_) {
     edge.second->ComputeResidual();
     tempChi += edge.second->RobustChi2();
   }
@@ -629,7 +640,7 @@ bool Problem::IsGoodStepInLM() {
   }
   tempChi *= 0.5;  // 1/2 * err^2
 
-  double rho = (currentChi_ - tempChi) / scale;
+  const double rho = (currentChi_ - tempChi) / scale;
   if (rho > 0 && isfinite(tempChi)) {
     // last step was good, 误差在下降
     double alpha = 1. - pow((2 * rho - 1), 3);

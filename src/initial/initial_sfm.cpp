@@ -264,9 +264,9 @@ bool construct(int frame_num, Quaterniond *q, Vector3d *T, int l,
   //LOG(INFO) << summary.BriefReport() << "\n";
   if (summary.termination_type == ceres::CONVERGENCE ||
       summary.final_cost < 5e-03) {
-    // LOG(INFO) << "vision only BA converge" << endl;
+    // LOG(INFO) << "vision only BA converge" ;
   } else {
-    // LOG(INFO) << "vision only BA not converge " << endl;
+    // LOG(INFO) << "vision only BA not converge " ;
     return false;
   }
   for (int i = 0; i < frame_num; i++) {

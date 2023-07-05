@@ -160,8 +160,7 @@ void Estimator::processImage(
 
   if (ESTIMATE_EXTRINSIC == 2) {
     // That means we need to calibrate the extrinsics rotation.
-    LOG(INFO) << "calibrating extrinsic param, rotation movement is needed"
-              << endl;
+    LOG(INFO) << "calibrating extrinsic param, rotation movement is needed";
 
     if (frame_count != 0) {
       const vector<pair<Vector3d, Vector3d>> corres =
@@ -285,13 +284,13 @@ bool Estimator::initialStructure() {
   Vector3d relative_T;
   int l;
   if (!relativePose(relative_R, relative_T, l)) {
-    LOG(INFO) << "Not enough features or parallax; Move device around" << endl;
+    LOG(INFO) << "Not enough features or parallax; Move device around";
     return false;
   }
 
   if (!GlobalSFM::construct(frame_count + 1, Q, T, l, relative_R, relative_T,
                             sfm_f, sfm_tracked_points)) {
-    LOG(INFO) << "global SFM failed!" << endl;
+    LOG(INFO) << "global SFM failed!";
     marginalization_flag = MARGIN_OLD;
     return false;
   }
@@ -346,13 +345,13 @@ bool Estimator::initialStructure() {
 
     if (pts_3_vector.size() < 6) {
       LOG(INFO) << "Not enough points for solve pnp pts_3_vector size "
-                << pts_3_vector.size() << endl;
+                << pts_3_vector.size();
       return false;
     }
 
     cv::Mat D;
     if (!cv::solvePnP(pts_3_vector, pts_2_vector, K, D, rvec, t, 1)) {
-      LOG(INFO) << " solve pnp fail!" << endl;
+      LOG(INFO) << " solve pnp fail!";
       return false;
     }
 
@@ -374,7 +373,7 @@ bool Estimator::initialStructure() {
   if (visualInitialAlign()) {
     return true;
   }
-  LOG(INFO) << "misalign visual structure with IMU" << endl;
+  LOG(INFO) << "misalign visual structure with IMU";
   return false;
 }
 
@@ -617,9 +616,9 @@ void Estimator::double2vector() {
     relo_relative_yaw =
         Utility::normalizeAngle(Utility::R2ypr(Rs[relo_frame_local_index]).x() -
                                 Utility::R2ypr(relo_r).x());
-    // LOG(INFO) << "vins relo " << endl;
-    // LOG(INFO) << "vins relative_t " << relo_relative_t.transpose() << endl;
-    // LOG(INFO) << "vins relative_yaw " <<relo_relative_yaw << endl;
+    // LOG(INFO) << "vins relo " ;
+    // LOG(INFO) << "vins relative_t " << relo_relative_t.transpose() ;
+    // LOG(INFO) << "vins relative_yaw " <<relo_relative_yaw ;
     relocalization_info = 0;
   }
 }

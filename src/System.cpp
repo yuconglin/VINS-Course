@@ -11,7 +11,7 @@ System::System(const string &sConfig_file_, const string &dataset_name)
     : bStart_backend(true) {
   string sConfig_file = sConfig_file_ + "euroc_config.yaml";
 
-  LOG(INFO) << "1 System() sConfig_file: " << sConfig_file << endl;
+  LOG(INFO) << "1 System() sConfig_file: " << sConfig_file;
   readParameters(sConfig_file);
 
   trackerData[0].readIntrinsicParameter(sConfig_file);
@@ -19,10 +19,10 @@ System::System(const string &sConfig_file_, const string &dataset_name)
   estimator.setParameter();
   ofs_pose.open("./" + dataset_name + "_pose_output.txt", fstream::out);
   if (!ofs_pose.is_open()) {
-    LOG(ERROR) << "ofs_pose is not open" << endl;
+    LOG(ERROR) << "ofs_pose is not open";
   }
 
-  LOG(INFO) << "2 System() end" << endl;
+  LOG(INFO) << "2 System() end";
 }
 
 System::~System() {
@@ -31,8 +31,12 @@ System::~System() {
   pangolin::QuitAll();
 
   m_buf.lock();
-  while (!feature_buf.empty()) feature_buf.pop();
-  while (!imu_buf.empty()) imu_buf.pop();
+  while (!feature_buf.empty()) {
+    feature_buf.pop();
+  }
+  while (!imu_buf.empty()) {
+    imu_buf.pop();
+  }
   m_buf.unlock();
 
   m_estimator.lock();
@@ -46,14 +50,13 @@ void System::PubImageData(double dStampSec, Mat &img) {
   if (!init_feature) {
     LOG(INFO)
         << "1 PubImageData skip the first detected feature, which doesn't "
-           "contain optical flow speed"
-        << endl;
+           "contain optical flow speed";
     init_feature = 1;
     return;
   }
 
   if (first_image_flag) {
-    LOG(INFO) << "2 PubImageData first_image_flag" << endl;
+    LOG(INFO) << "2 PubImageData first_image_flag";
     first_image_flag = false;
     first_image_time = dStampSec;
     last_image_time = dStampSec;
@@ -62,8 +65,8 @@ void System::PubImageData(double dStampSec, Mat &img) {
 
   // detect unstable camera stream
   if (dStampSec - last_image_time > 1.0 || dStampSec < last_image_time) {
-    LOG(ERROR) << "3 PubImageData image discontinue! reset the feature tracker!"
-               << endl;
+    LOG(ERROR)
+        << "3 PubImageData image discontinue! reset the feature tracker!";
     first_image_flag = true;
     last_image_time = 0;
     pub_count = 1;
@@ -87,7 +90,7 @@ void System::PubImageData(double dStampSec, Mat &img) {
   }
 
   TicToc t_r;
-  // LOG(INFO) << "3 PubImageData t : " << dStampSec << endl;
+  // LOG(INFO) << "3 PubImageData t : " << dStampSec ;
   trackerData[0].readImage(img, dStampSec);
 
   for (unsigned int i = 0;; i++) {
@@ -129,13 +132,11 @@ void System::PubImageData(double dStampSec, Mat &img) {
 
       // skip the first image; since no optical speed on frist image
       if (!init_pub) {
-        LOG(INFO) << "4 PubImage init_pub skip the first image!" << endl;
+        LOG(INFO) << "4 PubImage init_pub skip the first image!";
         init_pub = 1;
       } else {
         m_buf.lock();
         feature_buf.push(feature_points);
-        // LOG(INFO) << "5 PubImage t : " << fixed << feature_points->header
-        //     << " feature_buf size: " << feature_buf.size() << endl;
         m_buf.unlock();
         con.notify_one();
       }
@@ -157,7 +158,7 @@ void System::PubImageData(double dStampSec, Mat &img) {
     cv::waitKey(1);
   }
 #endif
-  // LOG(INFO) << "5 PubImage" << endl;
+  // LOG(INFO) << "5 PubImage" ;
 }
 
 // Get Imu and image messages from the queues.
@@ -173,14 +174,14 @@ vector<pair<vector<ImuConstPtr>, ImgConstPtr>> System::getMeasurements() {
           feature_buf.front()->header + estimator.td)) {
       LOG(ERROR)
           << "wait for imu, only should happen at the beginning sum_of_wait: "
-          << sum_of_wait << endl;
+          << sum_of_wait;
       sum_of_wait++;
       return measurements;
     }
 
     if (!(imu_buf.front()->header <
           feature_buf.front()->header + estimator.td)) {
-      LOG(ERROR) << "throw img, only should happen at the beginning" << endl;
+      LOG(ERROR) << "throw img, only should happen at the beginning";
       feature_buf.pop();
       continue;
     }
@@ -192,18 +193,18 @@ vector<pair<vector<ImuConstPtr>, ImgConstPtr>> System::getMeasurements() {
       IMUs.emplace_back(imu_buf.front());
       imu_buf.pop();
     }
-    // LOG(INFO) << "1 getMeasurements IMUs size: " << IMUs.size() << endl;
+    // LOG(INFO) << "1 getMeasurements IMUs size: " << IMUs.size() ;
     if (!imu_buf.empty()) {
       IMUs.emplace_back(imu_buf.front());
     }
 
     if (IMUs.empty()) {
-      LOG(ERROR) << "no imu between two image" << endl;
+      LOG(ERROR) << "no imu between two image";
     }
     // LOG(INFO) << "1 getMeasurements img t: " << fixed << img_msg->header
     //     << " imu begin: "<< IMUs.front()->header
     //     << " end: " << IMUs.back()->header
-    //     << endl;
+    //     ;
     measurements.emplace_back(IMUs, img_msg);
   }
   return measurements;
@@ -217,24 +218,24 @@ void System::PubImuData(double dStampSec, const Eigen::Vector3d &vGyr,
   imu_msg->angular_velocity = vGyr;
 
   if (dStampSec <= last_imu_t) {
-    LOG(ERROR) << "imu message in disorder!" << endl;
+    LOG(ERROR) << "imu message in disorder!";
     return;
   }
   last_imu_t = dStampSec;
   // LOG(INFO) << "1 PubImuData t: " << fixed << imu_msg->header
   //     << " acc: " << imu_msg->linear_acceleration.transpose()
-  //     << " gyr: " << imu_msg->angular_velocity.transpose() << endl;
+  //     << " gyr: " << imu_msg->angular_velocity.transpose() ;
   m_buf.lock();
   imu_buf.push(imu_msg);
   // LOG(INFO) << "1 PubImuData t: " << fixed << imu_msg->header
-  //     << " imu_buf size:" << imu_buf.size() << endl;
+  //     << " imu_buf size:" << imu_buf.size() ;
   m_buf.unlock();
   con.notify_one();
 }
 
 // thread: visual-inertial odometry
 void System::ProcessBackEnd() {
-  LOG(INFO) << "1 ProcessBackEnd start" << endl;
+  LOG(INFO) << "1 ProcessBackEnd start";
   while (bStart_backend) {
     vector<pair<vector<ImuConstPtr>, ImgConstPtr>> measurements;
 
@@ -245,7 +246,7 @@ void System::ProcessBackEnd() {
       LOG(INFO) << "1 getMeasurements size: " << measurements.size()
                 << " imu sizes: " << measurements[0].first.size()
                 << " feature_buf size: " << feature_buf.size()
-                << " imu_buf size: " << imu_buf.size() << endl;
+                << " imu_buf size: " << imu_buf.size();
     }
     lk.unlock();
 
@@ -323,19 +324,24 @@ void System::ProcessBackEnd() {
 
       TicToc t_processImage;
       estimator.processImage(image, img_msg->header);
+      const double t_proccess_time = t_processImage.toc();
+      total_image_proc_time_ += t_proccess_time;
+      ++proc_count_;
 
       if (estimator.solver_flag == Estimator::SolverFlag::NON_LINEAR) {
         const Quaterniond q_wi = Quaterniond(estimator.Rs[WINDOW_SIZE]);
         const Vector3d p_wi = estimator.Ps[WINDOW_SIZE];
         vPath_to_draw.push_back(p_wi);
         const double dStamp = estimator.Headers[WINDOW_SIZE];
+
         LOG(INFO) << "1 BackEnd processImage dt: " << std::fixed
-                  << t_processImage.toc() << "ms. "
-                  << "timestamp: " << dStamp << " p_wi: " << p_wi.transpose()
-                  << endl;
+                  << t_proccess_time << "ms. "
+                  << "timestamp: " << dStamp << " p_wi: " << p_wi.transpose();
+        LOG(INFO) << "............... Average image processing time: "
+                  << total_image_proc_time_ / proc_count_;
         ofs_pose << std::fixed << dStamp << " " << p_wi(0) << " " << p_wi(1)
                  << " " << p_wi(2) << " " << q_wi.w() << " " << q_wi.x() << " "
-                 << q_wi.y() << " " << q_wi.z() << endl;
+                 << q_wi.y() << " " << q_wi.z();
       }
     }
 

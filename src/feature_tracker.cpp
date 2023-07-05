@@ -134,13 +134,13 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time) {
     const int n_max_cnt = MAX_CNT - static_cast<int>(forw_pts.size());
     if (n_max_cnt > 0) {
       if (mask.empty()) {
-        LOG(INFO) << "mask is empty " << endl;
+        LOG(INFO) << "mask is empty " ;
       }
       if (mask.type() != CV_8UC1) {
-        LOG(INFO) << "mask type wrong " << endl;
+        LOG(INFO) << "mask type wrong " ;
       }
       if (mask.size() != forw_img.size()) {
-        LOG(INFO) << "wrong size " << endl;
+        LOG(INFO) << "wrong size " ;
       }
 
       // The function finds the most prominent corners in the image.
@@ -225,7 +225,7 @@ bool FeatureTracker::updateID(unsigned int i) {
 }
 
 void FeatureTracker::readIntrinsicParameter(const string &calib_file) {
-  LOG(INFO) << "reading paramerter of camera " << calib_file << endl;
+  LOG(INFO) << "reading paramerter of camera " << calib_file ;
   m_camera = CameraFactory::instance()->generateCameraFromYamlFile(calib_file);
 }
 

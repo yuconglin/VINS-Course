@@ -111,6 +111,7 @@ class Problem {
 
   /// 解线性方程
   void SolveLinearSystem();
+  void SolveLinearSystemSimple();
 
   /// 更新状态变量
   void UpdateStates();
@@ -205,6 +206,8 @@ class Problem {
   double t_hessian_cost_ = 0.0;
   double t_solver_cost_ = 0.0;
   double t_other_solve_cost_ = 0.0;
+
+  double t_total_solve_cost_ = 0.0;
 };
 
 }  // namespace backend
